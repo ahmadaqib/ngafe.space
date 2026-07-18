@@ -1,0 +1,1 @@
+<div x-data="{open:false}" {{ $attributes }}><button type="button" @click="open=true">{{ $trigger ?? 'Buka' }}</button><div x-show="open" x-transition.duration.200ms class="ngafe-card" style="position:fixed;inset:auto 0 0;min-height:45vh;max-height:92vh"><button @click="open=false">Tutup</button>{{ $slot }}</div></div>

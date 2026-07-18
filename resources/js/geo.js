@@ -1,0 +1,1 @@
+document.addEventListener('click', (event) => { if (!event.target.matches('[data-ngafe-geo]')) return; if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(({ coords }) => window.Livewire?.dispatch('geo-ready', { lat: coords.latitude, lng: coords.longitude })); });

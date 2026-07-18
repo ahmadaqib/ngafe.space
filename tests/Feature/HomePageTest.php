@@ -1,0 +1,4 @@
+<?php
+namespace Tests\Feature;
+use App\Domain\Cafe\Models\Cafe; use App\Domain\Identity\Models\User; use App\Domain\Review\Models\Review; use Illuminate\Foundation\Testing\RefreshDatabase; use Tests\Support\AssertsNoPii; use Tests\TestCase;
+class HomePageTest extends TestCase { use RefreshDatabase,AssertsNoPii; public function test_home_only_lists_cafes_with_published_reviews(): void {$user=User::factory()->create();$shown=Cafe::factory()->create(['name'=>'Yang Tampil','status'=>'active','rating_avg'=>4.6,'rating_count'=>1]);Review::factory()->create(['user_id'=>$user->id,'cafe_id'=>$shown->id]);Cafe::factory()->create(['name'=>'Jangan Tampil','status'=>'active']);$response=$this->get('/');$response->assertOk()->assertSee('Yang Tampil')->assertDontSee('Jangan Tampil');$this->assertNoPii($response,$user);} }

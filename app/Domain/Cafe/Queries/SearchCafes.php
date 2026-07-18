@@ -19,7 +19,8 @@ final class SearchCafes
             else $query->where('name', 'like', '%'.str_replace(' ', '%', trim($q)).'%');
         }
         if ($lat !== null && $lng !== null) {
-            $query->selectRaw('*, (6371 * acos(min(1.0, cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat))))) AS distance_km', [$lat, $lng, $lat])->orderBy('distance_km');
+            $cap = $query->getConnection()->getDriverName() === 'pgsql' ? 'least' : 'min';
+            $query->selectRaw("*, (6371 * acos({$cap}(1.0, cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat))))) AS distance_km", [$lat, $lng, $lat])->orderBy('distance_km');
         } else $query->orderByDesc('quality_score')->orderByDesc('rating_count');
         return $query->get();
     }

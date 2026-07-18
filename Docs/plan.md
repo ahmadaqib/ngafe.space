@@ -8,9 +8,9 @@
 
 **Architecture:** Modular monolith Laravel (`app/Domain/{Cafe,Review,Identity,Moderation}`) dengan disiplin clean architecture pragmatis (§9): controller/Livewire tipis → satu Action per use case (`handle()`) → side-effect lintas domain via event → presentasi keluar hanya lewat API Resource/Blade yang dijaga test no-PII. Model Eloquent penuh tanpa repository interface.
 
-**Tech Stack:** Laravel 12 · Livewire 3 + Alpine.js · Filament 4 (admin) · PostgreSQL 16 (pg_trgm, Haversine SQL) · Tailwind CSS 4 (design tokens §12 sebagai CSS variables) · Pest (test) · Cloudflare R2 (foto) · MapLibre GL + OpenFreeMap · Resend (email) · Sentry + UptimeRobot + Healthchecks.io · Umami (analytics).
+**Tech Stack:** Laravel 13 · Livewire 3 + Alpine.js · Filament 5 (admin) · PostgreSQL 17 (pg_trgm, Haversine SQL) · Tailwind CSS 4 (design tokens §12 sebagai CSS variables) · Pest 4 (test) · Cloudflare R2 (foto) · MapLibre GL + OpenFreeMap · Resend (email) · Sentry + UptimeRobot + Healthchecks.io · Umami (analytics).
 
-> **Catatan versi:** Spec menulis "Laravel 11 + Filament (3)". Keputusan 2026-07-18: dipakai **Laravel 12 + Filament 4** (stabil saat ini). Seluruh isi spec tetap berlaku; hanya nomor versi berubah.
+> **Catatan versi:** Spec menulis "Laravel 11 + Filament (3) + PostgreSQL 16". Keputusan 2026-07-18: pakai versi stabil terbaru — hasil install aktual **Laravel 13.20 + Filament 5.7 + Pest 4**, dan Postgres lokal yang sudah terpasang adalah **17.10** (≥16, pg_trgm tersedia). Seluruh isi spec tetap berlaku; hanya nomor versi berubah.
 
 ## Global Constraints (berlaku implisit di SEMUA task)
 
@@ -30,33 +30,33 @@
 
 ## Phase 0 — Project Init di Root _(hari 1)_
 
-### Task 0.1: Scaffold Laravel 12 langsung di root repo
+### Task 0.1: Scaffold Laravel langsung di root repo ✅ (selesai 2026-07-18)
 
 **Files:** seluruh scaffold Laravel di `/` (root repo, BUKAN subfolder) — `app/`, `config/`, `routes/`, `composer.json`, dst. `Docs/`, `.claude/`, `.git` existing dipertahankan.
 
-- [ ] `composer create-project laravel/laravel <temp-dir>` (root tidak kosong, jadi lewat temp).
-- [ ] Pindahkan seluruh isi temp (termasuk dotfiles: `.env`, `.env.example`, `.gitignore`, `.editorconfig`, `.gitattributes`) ke root; hapus temp. Jangan menimpa `.git`/`Docs`/`.claude`.
-- [ ] `php artisan key:generate` bila `.env` belum ber-key; `php artisan about` → tampil Laravel 12.x.
-- [ ] Commit: `chore: scaffold laravel 12 di root`.
+- [x] `composer create-project laravel/laravel <temp-dir>` (root tidak kosong, jadi lewat temp) → dapat **Laravel 13.20**.
+- [x] Pindahkan seluruh isi temp (termasuk dotfiles: `.env`, `.env.example`, `.gitignore`, `.editorconfig`, `.gitattributes`, `.npmrc`) ke root; hapus temp. `.git`/`Docs`/`.claude` utuh.
+- [x] `php artisan about` → Laravel 13.20.0, APP_KEY terisi.
+- [x] Commit: `chore: scaffold laravel 13 di root + Docs`.
 
-### Task 0.2: Dependency inti + PostgreSQL 16
+### Task 0.2: Dependency inti + PostgreSQL ✅ (selesai 2026-07-18)
 
-**Files:** `composer.json`, `.env`, `config/database.php` (default sudah oke), `tests/Pest.php`.
+**Files:** `composer.json`, `.env`, `.env.example`, `app/Providers/Filament/AdminPanelProvider.php`, `tests/Pest.php`.
 
-- [ ] Pastikan Postgres 16 jalan lokal (`psql --version`, `pg_isready`); bila belum: `brew install postgresql@16 && brew services start postgresql@16`. Buat DB: `createdb ngafe`.
-- [ ] `.env`: `DB_CONNECTION=pgsql`, `DB_DATABASE=ngafe`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, `CACHE_STORE=database` (Redis menyusul di VPS — dev lokal cukup database driver).
-- [ ] `composer require filament/filament livewire/livewire laravel/socialite intervention/image league/flysystem-aws-s3-v3`
-- [ ] `composer require pestphp/pest pestphp/pest-plugin-laravel --dev -W` → `php artisan pest:install -n`.
-- [ ] `php artisan filament:install --panels -n` → panel provider dibuat; **langsung ganti path default** di `app/Providers/Filament/AdminPanelProvider.php`: `->path('ruang-admin')` (path non-default, §10 hardening).
-- [ ] `php artisan migrate` (tabel bawaan) → sukses.
-- [ ] `npm install && npm run build` → sukses tanpa error.
-- [ ] Commit: `chore: install filament, livewire, socialite, intervention, pest + konfigurasi pgsql`.
+- [x] Postgres **17.10** (Homebrew) sudah jalan lokal; `createdb ngafe`.
+- [x] `.env` + `.env.example`: `DB_CONNECTION=pgsql`, `DB_DATABASE=ngafe`, `APP_LOCALE=id`, faker `id_ID`; `SESSION_DRIVER`/`QUEUE_CONNECTION`/`CACHE_STORE=database` (Redis menyusul di VPS).
+- [x] `composer require filament/filament laravel/socialite intervention/image league/flysystem-aws-s3-v3` → **Filament 5.7** (Livewire ikut sebagai dependency), Socialite 5.28, Intervention 4.2.
+- [x] `composer require pestphp/pest pestphp/pest-plugin-laravel --dev -W` (**Pest 4.7**) → `php artisan pest:install -n`.
+- [x] `php artisan filament:install --panels -n` → `AdminPanelProvider` dibuat; path default diganti `->path('ruang-admin')` (§10 hardening).
+- [x] `php artisan migrate` (tabel bawaan) → sukses di pgsql.
+- [x] `npm install && npm run build` → sukses, 0 vulnerabilities.
+- [x] Commit.
 
-### Task 0.3: Verifikasi toolchain
+### Task 0.3: Verifikasi toolchain ✅ (selesai 2026-07-18)
 
-- [ ] `php artisan test` → hijau (contoh test bawaan pass).
-- [ ] `php artisan serve` + `curl -s localhost:8000 | head` → halaman welcome merespons 200.
-- [ ] `git status` bersih setelah commit; `Docs/` & `.claude/` utuh.
+- [x] `php artisan test` → hijau (2 passed).
+- [x] `php artisan serve` + curl → `/` 200, `/ruang-admin/login` 200, `/admin` (path lama) 404.
+- [x] `git status` bersih setelah commit; `Docs/` & `.claude/` utuh.
 
 ---
 
@@ -200,14 +200,14 @@ abstract class DomainException extends \Exception
 - [ ] Return-to-context: sebelum redirect OAuth simpan `intended_url` + konteks aksi di session; callback redirect balik PERSIS (§4.3.4). (Bottom-sheet UI-nya menyusul Phase 4 — di sini cukup mekanika redirect.)
 - [ ] Commit.
 
-### Task 1.6: Filament 4 admin panel — hardening sejak hari 1 (§10)
+### Task 1.6: Filament 5 admin panel — hardening sejak hari 1 (§10)
 
 **Files:**
 - Modify: `app/Providers/Filament/AdminPanelProvider.php`
 - Create: `app/Filament/Resources/{CafeResource,CategoryResource}.php` (CRUD dasar; Review/Report resource menyusul Phase 4)
 - Test: `tests/Feature/Admin/PanelAccessTest.php`
 
-- [ ] Panel: `->path('ruang-admin')` · gate akses `role === 'admin'` (`FilamentUser` contract di model User) · **2FA TOTP wajib** (fitur MFA bawaan Filament 4 di-enable + `->requiresMfa()`) · session pendek (`config/session.php` lifetime 60 utk panel via middleware).
+- [ ] Panel: `->path('ruang-admin')` · gate akses `role === 'admin'` (`FilamentUser` contract di model User) · **2FA TOTP wajib** (fitur MFA bawaan Filament di-enable + `->requiresMfa()`) · session pendek (`config/session.php` lifetime 60 utk panel via middleware).
 - [ ] TDD: user role `user` → 403 ke `/ruang-admin`; guest → redirect login; `/admin` (path default) → 404.
 - [ ] CRUD Cafe di Filament: form field sesuai §11 termasuk `opening_hours_override` (repeater `{label,date_start,date_end,hours}`) — dipakai seeding lapangan mulai minggu 1. CRUD Category.
 - [ ] Commit.
@@ -234,7 +234,7 @@ trait AssertsNoPii
 ```
 
 - [ ] Test awal: halaman detail cafe (placeholder route dulu bila Phase 2 belum ada — minimal JSON resource Review) → `assertNoPii`. Setiap task Phase 2+ yang menambah output publik WAJIB menambah pemanggilan trait ini.
-- [ ] `.github/workflows/ci.yml`: jobs `composer audit`, `php artisan test` (service container Postgres 16 + `CREATE EXTENSION pg_trgm`), `npm run build`. Lockfile committed.
+- [ ] `.github/workflows/ci.yml`: jobs `composer audit`, `php artisan test` (service container Postgres 17 + `CREATE EXTENSION pg_trgm`), `npm run build`. Lockfile committed.
 - [ ] Commit; push; CI hijau.
 
 ### Task 1.8: Seeder kategori + factories

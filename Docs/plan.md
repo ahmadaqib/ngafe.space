@@ -76,8 +76,8 @@ app/Support/            ← helper lintas domain (LogContext, Format)
 
 **Interfaces — Produces:** namespace `App\Domain\...` dipakai semua task berikutnya. Autoload PSR-4 `App\` sudah mencakup `app/` — tidak perlu ubah composer.json.
 
-- [ ] Buat struktur folder; pindahkan `User` bawaan ke `app/Domain/Identity/Models/User.php` (update namespace + `config/auth.php` providers + factory).
-- [ ] `php artisan test` tetap hijau. Commit.
+- [x] Buat struktur folder; pindahkan `User` bawaan ke `app/Domain/Identity/Models/User.php` (update namespace + `config/auth.php` providers + factory).
+- [x] `php artisan test` tetap hijau. Commit.
 
 ### Task 1.2: Migrations + Models sesuai data model §11
 

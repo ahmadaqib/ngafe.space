@@ -255,10 +255,10 @@ trait AssertsNoPii
 - Create: `resources/css/tokens.css` (primitif §12.1 + semantik §12.2 light/dark via `@media (prefers-color-scheme)` + `data-theme`), `resources/views/components/layout/app.blade.php` (shell: bottom nav 3 item Jelajah·Cari·Kamu, safe-area), `resources/views/components/ui/{card,chip,badge,button,skeleton,sheet}.blade.php`
 - Modify: `resources/css/app.css`, `vite.config.js`, `tailwind` config (map token → utility)
 
-- [ ] Salin SEMUA nilai hex §12.1–12.3 verbatim ke `tokens.css`; komponen hanya boleh `var(--…)`. Spacing/radius/type/motion/z-index §12.4 sebagai custom properties.
-- [ ] Font: Plus Jakarta Sans variable **self-host** (`@font-face`, woff2 di `public/fonts/`); keputusan §12.4: mulai 1 family untuk semua (bundle ringan), Inter menyusul hanya jika perlu.
-- [ ] Komponen `sheet` (bottom drawer §14): drag handle, snap peek 45%/full 92%, Alpine + CSS transform, ≤250ms, hormati `prefers-reduced-motion`.
-- [ ] Verifikasi visual: halaman styleguide dev-only `/dev/tokens` (light+dark) — cek kontras pasangan token dengan tooling (axe/manual). Commit.
+- [x] Salin SEMUA nilai hex §12.1–12.3 verbatim ke `tokens.css`; komponen hanya boleh `var(--…)`. Spacing/radius/type/motion/z-index §12.4 sebagai custom properties.
+- [x] Font: Plus Jakarta Sans variable **self-host** (`@font-face`, woff2 di `public/fonts/`); keputusan §12.4: mulai 1 family untuk semua (bundle ringan), Inter menyusul hanya jika perlu.
+- [x] Komponen `sheet` (bottom drawer §14): drag handle, snap peek 45%/full 92%, Alpine + CSS transform, ≤250ms, hormati `prefers-reduced-motion`.
+- [x] Verifikasi visual: halaman styleguide dev-only `/dev/tokens` (light+dark) — cek kontras pasangan token dengan tooling (axe/manual). Commit.
 
 ### Task 2.1: Route publik + halaman detail cafe (F1 — unit aha moment)
 
@@ -269,11 +269,11 @@ trait AssertsNoPii
 
 **Interfaces — Produces:** `OpeningHours::statusNow(Cafe $cafe, CarbonImmutable $now): OpeningStatus` — value object `{isOpen: bool, label: string, activeOverride: ?string}`; **override musiman menang atas jadwal normal** (§F1 AC).
 
-- [ ] TDD `OpeningHours`: (a) jam normal buka/tutup lintas tengah malam (24 jam); (b) `opening_hours_override` aktif hari ini → dipakai + `activeOverride` = label ("Jam khusus Ramadan…" → banner); (c) tanpa data jam → label "Jam belum tersedia".
-- [ ] TDD halaman: (a) cafe `active` terbaca penuh **tanpa login** + `assertNoPii`; (b) cafe `pending`/`rejected` → 404; (c) urutan konten: galeri foto (4:3 tetap, §16) → nama+rating+status buka → tag → **blok review ≤1 swipe** (review pertama server-rendered, bukan lazy JS — SEO §10); (d) review `pending` orang lain tidak tampil, tampil bagi penulisnya dengan badge "sedang ditinjau"; (e) deep-link "Arah" (`geo:`/Google Maps URL); (f) timestamp kasar "2 hari lalu".
-- [ ] CTA akhir daftar review: "Pernah ke sini? Ceritakan versimu" (pintu login §4.1.6 — behavior penuh Phase 4, sekarang placeholder link login).
-- [ ] Full-page cache anonim 5 menit untuk halaman detail (§10 Performa) — middleware cache respons untuk guest.
-- [ ] Commit.
+- [x] TDD `OpeningHours`: (a) jam normal buka/tutup lintas tengah malam (24 jam); (b) `opening_hours_override` aktif hari ini → dipakai + `activeOverride` = label ("Jam khusus Ramadan…" → banner); (c) tanpa data jam → label "Jam belum tersedia".
+- [x] TDD halaman: (a) cafe `active` terbaca penuh **tanpa login** + `assertNoPii`; (b) cafe `pending`/`rejected` → 404; (c) urutan konten: galeri foto (4:3 tetap, §16) → nama+rating+status buka → tag → **blok review ≤1 swipe** (review pertama server-rendered, bukan lazy JS — SEO §10); (d) review `pending` orang lain tidak tampil, tampil bagi penulisnya dengan badge "sedang ditinjau"; (e) deep-link "Arah" (`geo:`/Google Maps URL); (f) timestamp kasar "2 hari lalu".
+- [x] CTA akhir daftar review: "Pernah ke sini? Ceritakan versimu" (pintu login §4.1.6 — behavior penuh Phase 4, sekarang placeholder link login).
+- [x] Full-page cache anonim 5 menit untuk halaman detail (§10 Performa) — middleware cache respons untuk guest.
+- [x] Commit.
 
 ### Task 2.2: Homepage jalur aha (F1) — tanpa gate, tanpa splash
 
@@ -281,11 +281,11 @@ trait AssertsNoPii
 - Create: `app/Livewire/Home.php`, `resources/views/livewire/home.blade.php`, `app/Domain/Cafe/Queries/HomeSections.php`
 - Test: `tests/Feature/HomePageTest.php`
 
-- [ ] Above the fold: search bar + maks **6 chip** kategori (+"Lainnya" → sheet 12 lengkap, §13 Hick) + grid kartu "Lagi rame dibahas" (sementara sort `rating_count` desc; `trending_score` asli menggantikan di Phase 6 — kolom & query SUDAH pakai `trending_score` agar tinggal diisi cron).
-- [ ] Kartu cafe 5 chunk (§13 Miller): foto user 4:3, nama, rating "4,6" + jumlah, 2 tag, jarak (bila ada)/potongan review ≤90 char potong di batas kata (§12.5).
-- [ ] TDD: (a) **cafe tanpa review published tidak muncul di seksi homepage** (§4.1 aturan keras); (b) tanpa login semua terbaca, tidak ada redirect; (c) `assertNoPii`; (d) rating format koma.
-- [ ] Urutan chip kontekstual (§F4): weekday 09–16 WITA → `Cocok nugas & WFC` duluan; wiken → `Hidden gem / baru buka` + `Aesthetic` (uji dengan `Carbon::setTestNow`).
-- [ ] Commit.
+- [x] Above the fold: search bar + maks **6 chip** kategori (+"Lainnya" → sheet 12 lengkap, §13 Hick) + grid kartu "Lagi rame dibahas" (sementara sort `rating_count` desc; `trending_score` asli menggantikan di Phase 6 — kolom & query SUDAH pakai `trending_score` agar tinggal diisi cron).
+- [x] Kartu cafe 5 chunk (§13 Miller): foto user 4:3, nama, rating "4,6" + jumlah, 2 tag, jarak (bila ada)/potongan review ≤90 char potong di batas kata (§12.5).
+- [x] TDD: (a) **cafe tanpa review published tidak muncul di seksi homepage** (§4.1 aturan keras); (b) tanpa login semua terbaca, tidak ada redirect; (c) `assertNoPii`; (d) rating format koma.
+- [x] Urutan chip kontekstual (§F4): weekday 09–16 WITA → `Cocok nugas & WFC` duluan; wiken → `Hidden gem / baru buka` + `Aesthetic` (uji dengan `Carbon::setTestNow`).
+- [x] Commit.
 
 ### Task 2.3: Live-search + filter kategori (F3, F4-filter)
 
@@ -308,10 +308,10 @@ $query->when($lat && $lng, fn ($qq) => $qq
 // Filter kategori = AND (§F4): whereHas per slug (irisan)
 ```
 
-- [ ] TDD unit: typo "kopi anjs" tetap menemukan "Kopi Anjis"; multi kategori = irisan; jarak terurut benar (fixture 3 koordinat); hanya `active`.
-- [ ] Livewire: debounce 250ms, hasil <500ms, jumlah hasil tampil ("12 cafe cocok"), update tanpa reload.
-- [ ] **Empty state cerdas (§4.2 edge):** hitung filter paling membatasi (lepas satu-satu, ambil yang menambah hasil terbanyak) → "Coba lepas 'Buka 24 jam' — ada 8 cafe lain" + CTA usulkan cafe.
-- [ ] Riwayat pencarian maks 3 chip, localStorage (§16). Commit.
+- [x] TDD unit: typo "kopi anjs" tetap menemukan "Kopi Anjis"; multi kategori = irisan; jarak terurut benar (fixture 3 koordinat); hanya `active`.
+- [x] Livewire: debounce 250ms, hasil <500ms, jumlah hasil tampil ("12 cafe cocok"), update tanpa reload.
+- [x] **Empty state cerdas (§4.2 edge):** hitung filter paling membatasi (lepas satu-satu, ambil yang menambah hasil terbanyak) → "Coba lepas 'Buka 24 jam' — ada 8 cafe lain" + CTA usulkan cafe.
+- [x] Riwayat pencarian maks 3 chip, localStorage (§16). Commit.
 
 ### Task 2.4: Lokasi & fallback area (F3)
 
@@ -320,10 +320,10 @@ $query->when($lat && $lng, fn ($qq) => $qq
 - Create: `resources/js/geo.js`
 - Test: `tests/Feature/SearchAreaFallbackTest.php`
 
-- [ ] Alur izin §4.2: pre-prompt penjelasan ("Boleh tau posisimu? Biar yang paling dekat muncul duluan.") → baru `navigator.geolocation`. Koordinat HANYA dikirim sebagai parameter query — TIDAK dilog, TIDAK disimpan (§10).
-- [ ] Ditolak → chip area §4.2c: Tamalanrea, Panakkukang, Losari/Pantai, Antang, Hertasning, Daya, Sekitar Unhas, Sekitar UNM/UIN. Tidak pernah dead-end.
-- [ ] Label jarak format §12.5 (`Format::distance()` helper di `app/Support/Format.php` + test unit: 850 → "850 m", 1234 → "1,2 km").
-- [ ] Commit.
+- [x] Alur izin §4.2: pre-prompt penjelasan ("Boleh tau posisimu? Biar yang paling dekat muncul duluan.") → baru `navigator.geolocation`. Koordinat HANYA dikirim sebagai parameter query — TIDAK dilog, TIDAK disimpan (§10).
+- [x] Ditolak → chip area §4.2c: Tamalanrea, Panakkukang, Losari/Pantai, Antang, Hertasning, Daya, Sekitar Unhas, Sekitar UNM/UIN. Tidak pernah dead-end.
+- [x] Label jarak format §12.5 (`Format::distance()` helper di `app/Support/Format.php` + test unit: 850 → "850 m", 1234 → "1,2 km").
+- [x] Commit.
 
 ---
 
@@ -337,8 +337,8 @@ $query->when($lat && $lng, fn ($qq) => $qq
 
 **Interfaces:** event `ReviewStatusChanged(Review $review, ?ReviewStatus $from)` — **di-dispatch oleh semua Action yang mengubah status review** (SubmitReview, ModerateReview, dst. di Phase 4). Listener queue job idempotent: hitung ulang `rating_avg`+`rating_count` dari sumber (hanya `published`), `quality_score` Bayesian ikut di-update di sini (rumus Task 6.1).
 
-- [ ] TDD: (a) review published masuk → avg/count berubah; (b) status → `pending`/`removed` → dikeluarkan dari agregat; (c) job dijalankan 2× → hasil sama (idempotent); (d) tidak dihitung on-the-fly di request (assert query halaman detail tidak agregasi).
-- [ ] Tampilan: cafe tanpa rating → "Belum ada review — jadi yang pertama?" BUKAN "0.0" (§F2). Commit.
+- [x] TDD: (a) review published masuk → avg/count berubah; (b) status → `pending`/`removed` → dikeluarkan dari agregat; (c) job dijalankan 2× → hasil sama (idempotent); (d) tidak dihitung on-the-fly di request (assert query halaman detail tidak agregasi).
+- [x] Tampilan: cafe tanpa rating → "Belum ada review — jadi yang pertama?" BUKAN "0.0" (§F2). Commit.
 
 ### Task 3.2: Kategori crowdsourced + Hidden gem auto (F4)
 
@@ -346,8 +346,8 @@ $query->when($lat && $lng, fn ($qq) => $qq
 - Create: `app/Domain/Cafe/Actions/SyncCrowdCategories.php`, `app/Console/Commands/AssignHiddenGem.php` (scheduled daily)
 - Test: `tests/Unit/Actions/SyncCrowdCategoriesTest.php`
 
-- [ ] Quick-tag ≥30% reviewer sebuah cafe → kategori tampil (`cafe_category.source='crowd'`, `confidence`=proporsi) — dipanggil dari listener `ReviewStatusChanged`.
-- [ ] `Hidden gem / baru buka` auto: umur <90 hari di platform ATAU review <10 (scheduled command + saat cafe approve). TDD kedua aturan + lepasnya label saat lewat ambang. Commit.
+- [x] Quick-tag ≥30% reviewer sebuah cafe → kategori tampil (`cafe_category.source='crowd'`, `confidence`=proporsi) — dipanggil dari listener `ReviewStatusChanged`.
+- [x] `Hidden gem / baru buka` auto: umur <90 hari di platform ATAU review <10 (scheduled command + saat cafe approve). TDD kedua aturan + lepasnya label saat lewat ambang. Commit.
 
 ---
 

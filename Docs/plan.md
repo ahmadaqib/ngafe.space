@@ -139,9 +139,9 @@ Schema::create('reviews', function (Blueprint $t) {
 //   reason enum §11, note nullable, status open/resolved, resolved_by nullable, timestamps
 ```
 
-- [ ] Tulis `SchemaTest` dulu: assert tabel & kolom kunci ada, unique `(user_id,cafe_id)` ditegakkan (insert kedua → `QueryException`), unique `(city,slug)`.
-- [ ] Jalankan → FAIL. Tulis migrations + models (relasi §11: User 1—N Review; Cafe 1—N Review; Review 1—N Photo; Cafe N—M Category; User 1—N Report; casts enum + jsonb; `$fillable` eksplisit).
-- [ ] `php artisan migrate:fresh && php artisan test` → PASS. Commit.
+- [x] Tulis `SchemaTest` dulu: assert tabel & kolom kunci ada, unique `(user_id,cafe_id)` ditegakkan (insert kedua → `QueryException`), unique `(city,slug)`.
+- [x] Jalankan → FAIL. Tulis migrations + models (relasi §11: User 1—N Review; Cafe 1—N Review; Review 1—N Photo; Cafe N—M Category; User 1—N Report; casts enum + jsonb; `$fillable` eksplisit).
+- [x] `php artisan migrate:fresh && php artisan test` → PASS. Commit.
 
 ### Task 1.3: Ekstensi pg_trgm + index GIN
 
@@ -152,7 +152,7 @@ DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');
 DB::statement('CREATE INDEX cafes_name_trgm ON cafes USING gin (name gin_trgm_ops)');
 ```
 
-- [ ] Test: seed cafe "Kopi Anjis Perintis" → `SELECT similarity(name, 'kopi anjs')` > 0.3 via query builder → PASS setelah migration. **Index ini dipakai live-search F3 DAN dedup F8 — satu index dua fungsi (§9).** Commit.
+- [x] Test: seed cafe "Kopi Anjis Perintis" → `SELECT similarity(name, 'kopi anjs')` > 0.3 via query builder → PASS setelah migration. **Index ini dipakai live-search F3 DAN dedup F8 — satu index dua fungsi (§9).** Commit.
 
 ### Task 1.4: Error handling satu pintu + request_id (§10 Logging/Error v1.4)
 
@@ -182,9 +182,9 @@ abstract class DomainException extends \Exception
 // Log::withContext(['request_id' => $id]); response header X-Request-Id; Sentry tag.
 ```
 
-- [ ] TDD: (a) endpoint dummy melempar `ReviewLimitExceeded` → response 422 berisi `userMessage()`, TANPA stack trace; (b) exception non-domain → pesan generik "Ada yang error di kami, bukan di kamu…" (§10); (c) semua response punya header `X-Request-Id` ULID.
-- [ ] `LogContext::safe(array $ctx)`: helper terpusat yang **menolak key terlarang** (`email`, `google_sub`, `token`, `body`, `lat`, `lng`, `ip`) — test unit assert throw saat key terlarang masuk. Logging channel: Monolog JSON daily, `days => 14`, level prod `info`.
-- [ ] Commit.
+- [x] TDD: (a) endpoint dummy melempar `ReviewLimitExceeded` → response 422 berisi `userMessage()`, TANPA stack trace; (b) exception non-domain → pesan generik "Ada yang error di kami, bukan di kamu…" (§10); (c) semua response punya header `X-Request-Id` ULID.
+- [x] `LogContext::safe(array $ctx)`: helper terpusat yang **menolak key terlarang** (`email`, `google_sub`, `token`, `body`, `lat`, `lng`, `ip`) — test unit assert throw saat key terlarang masuk. Logging channel: Monolog JSON daily, `days => 14`, level prod `info`.
+- [x] Commit.
 
 ### Task 1.5: Google OAuth via Socialite (§4.3, §10)
 
@@ -195,10 +195,10 @@ abstract class DomainException extends \Exception
 
 **Interfaces — Produces:** `HandleGoogleCallback::handle(SocialiteUser $g): User` — match **by `google_sub`** (bukan email), create bila belum ada, simpan hanya `google_sub` + `email` + generate `display_alias_seed`.
 
-- [ ] TDD (mock `Socialite::driver('google')->user()`): (a) sub baru → user dibuat, HANYA sub+email tersimpan (assert kolom name/avatar tidak ada); (b) sub sama email berubah → user lama ter-match, email ter-update; (c) callback tanpa state valid → redirect aman tanpa crash; (d) session di-regenerate saat login.
-- [ ] Scope hanya `openid email`. Cookie session `HttpOnly; Secure; SameSite=Lax` (config/session.php).
-- [ ] Return-to-context: sebelum redirect OAuth simpan `intended_url` + konteks aksi di session; callback redirect balik PERSIS (§4.3.4). (Bottom-sheet UI-nya menyusul Phase 4 — di sini cukup mekanika redirect.)
-- [ ] Commit.
+- [x] TDD (mock `Socialite::driver('google')->user()`): (a) sub baru → user dibuat, HANYA sub+email tersimpan (assert kolom name/avatar tidak ada); (b) sub sama email berubah → user lama ter-match, email ter-update; (c) callback tanpa state valid → redirect aman tanpa crash; (d) session di-regenerate saat login.
+- [x] Scope hanya `openid email`. Cookie session `HttpOnly; Secure; SameSite=Lax` (config/session.php).
+- [x] Return-to-context: sebelum redirect OAuth simpan `intended_url` + konteks aksi di session; callback redirect balik PERSIS (§4.3.4). (Bottom-sheet UI-nya menyusul Phase 4 — di sini cukup mekanika redirect.)
+- [x] Commit.
 
 ### Task 1.6: Filament 5 admin panel — hardening sejak hari 1 (§10)
 
@@ -207,10 +207,10 @@ abstract class DomainException extends \Exception
 - Create: `app/Filament/Resources/{CafeResource,CategoryResource}.php` (CRUD dasar; Review/Report resource menyusul Phase 4)
 - Test: `tests/Feature/Admin/PanelAccessTest.php`
 
-- [ ] Panel: `->path('ruang-admin')` · gate akses `role === 'admin'` (`FilamentUser` contract di model User) · **2FA TOTP wajib** (fitur MFA bawaan Filament di-enable + `->requiresMfa()`) · session pendek (`config/session.php` lifetime 60 utk panel via middleware).
-- [ ] TDD: user role `user` → 403 ke `/ruang-admin`; guest → redirect login; `/admin` (path default) → 404.
-- [ ] CRUD Cafe di Filament: form field sesuai §11 termasuk `opening_hours_override` (repeater `{label,date_start,date_end,hours}`) — dipakai seeding lapangan mulai minggu 1. CRUD Category.
-- [ ] Commit.
+- [x] Panel: `->path('ruang-admin')` · gate akses `role === 'admin'` (`FilamentUser` contract di model User) · **2FA TOTP wajib** (fitur MFA bawaan Filament di-enable + `->requiresMfa()`) · session pendek (`config/session.php` lifetime 60 utk panel via middleware).
+- [x] TDD: user role `user` → 403 ke `/ruang-admin`; guest → redirect login; `/admin` (path default) → 404.
+- [x] CRUD Cafe di Filament: form field sesuai §11 termasuk `opening_hours_override` (repeater `{label,date_start,date_end,hours}`) — dipakai seeding lapangan mulai minggu 1. CRUD Category.
+- [x] Commit.
 
 ### Task 1.7: No-PII test harness + CI (§10 threat #1)
 
@@ -233,17 +233,17 @@ trait AssertsNoPii
 }
 ```
 
-- [ ] Test awal: halaman detail cafe (placeholder route dulu bila Phase 2 belum ada — minimal JSON resource Review) → `assertNoPii`. Setiap task Phase 2+ yang menambah output publik WAJIB menambah pemanggilan trait ini.
-- [ ] `.github/workflows/ci.yml`: jobs `composer audit`, `php artisan test` (service container Postgres 17 + `CREATE EXTENSION pg_trgm`), `npm run build`. Lockfile committed.
-- [ ] Commit; push; CI hijau.
+- [x] Test awal: halaman detail cafe (placeholder route dulu bila Phase 2 belum ada — minimal JSON resource Review) → `assertNoPii`. Setiap task Phase 2+ yang menambah output publik WAJIB menambah pemanggilan trait ini.
+- [x] `.github/workflows/ci.yml`: jobs `composer audit`, `php artisan test` (service container Postgres 17 + `CREATE EXTENSION pg_trgm`), `npm run build`. Lockfile committed.
+- [ ] Commit; push; CI hijau. (Commit lokal selesai pada penutupan Phase 1; push/hasil CI membutuhkan remote run.)
 
 ### Task 1.8: Seeder kategori + factories
 
 **Files:** `database/seeders/CategorySeeder.php`, `database/factories/{CafeFactory,ReviewFactory,PhotoFactory}.php`
 
-- [ ] 12 kategori persis §F4: `Cocok nugas & WFC` · `Wifi kencang` · `Banyak colokan` · `Buka 24 jam` · `Ramah kantong` · `Aesthetic` · `Tenang` · `Rame/nongkrong` · `Hidden gem / baru buka` · `Outdoor/smoking area` · `Ramah keluarga` · `Musala & parkir gampang` — masing-masing dengan ikon Lucide & `sort_order`.
-- [ ] Factories realistis Makassar (§15 anti lorem-ipsum): nama cafe & review contoh dari daftar kurasi manual di factory (bukan faker lorem), koordinat dalam bbox Makassar, area dari daftar §4.2c.
-- [ ] Commit.
+- [x] 12 kategori persis §F4: `Cocok nugas & WFC` · `Wifi kencang` · `Banyak colokan` · `Buka 24 jam` · `Ramah kantong` · `Aesthetic` · `Tenang` · `Rame/nongkrong` · `Hidden gem / baru buka` · `Outdoor/smoking area` · `Ramah keluarga` · `Musala & parkir gampang` — masing-masing dengan ikon Lucide & `sort_order`.
+- [x] Factories realistis Makassar (§15 anti lorem-ipsum): nama cafe & review contoh dari daftar kurasi manual di factory (bukan faker lorem), koordinat dalam bbox Makassar, area dari daftar §4.2c.
+- [x] Commit.
 
 ---
 

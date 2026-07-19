@@ -435,11 +435,12 @@ final class AliasGenerator
 
 - [ ] TDD: JSON-LD valid di detail; sitemap HANYA cafe `active` (§10 governance); canonical; halaman kategori+kota indexable & berisi. Commit.
 
-### Task 5.2: OG share card + Web Share API (§10 SEO, §16)
+### Task 5.2: OG share card + Web Share API (§10 SEO, §16) ✅ (selesai 2026-07-19)
 
 **Files:** `app/Jobs/GenerateShareCard.php` (Intervention: foto + nama + rating + tag + wordmark "ngafe.space" lowercase §12.0), tombol share (`navigator.share` + fallback copy-link toast "Link kesalin!"), event `share_tap` · Test: `tests/Unit/Jobs/GenerateShareCardTest.php`
 
-- [ ] Job deterministik overwrite (idempotent); regenerate saat rating/foto utama berubah; meta `og:image` menunjuk hasil. Commit.
+- [x] Job deterministik overwrite (`share-cards/{cafe_id}.webp`, R2) idempoten; regenerate didispatch dari `RecomputeCafeAggregates` (rating berubah) DAN `ProcessReviewPhoto` (foto baru pada review yang sudah published); meta `og:image` menunjuk `cafes.share_card_url` (fallback foto pertama). Font Plus Jakarta Sans di-instance dari variable woff2 bundel npm ke TTF statis (`resources/fonts/*.ttf`, fonttools) — self-host tetap terjaga, tanpa font eksternal. Tombol share (`resources/js/share.js`): `navigator.share` bila tersedia, fallback `navigator.clipboard` + toast "Link kesalin!" (`.ngafe-toast`, token `--z-toast`); event `share_tap` didispatch via `CustomEvent('ngafe:analytics')` (Phase 7 tinggal listen, tidak membangun infra analytics lebih awal). Diverifikasi visual (render nyata dicek) + browser test nyata (`tests/Browser/ShareButtonTest.php`) + unit test job (`GenerateShareCardTest.php`, 4 test). Commit.
+- **Efek samping penting:** ketahuan `QUEUE_CONNECTION=sync` di test (phpunit.xml) membuat job manapun yang menyentuh `Storage::disk('r2')` jalan sinkron di SEMUA test yang memicu `ReviewStatusChanged`/`ProcessReviewPhoto` — bukan cuma test foto. `config/filesystems.php` diubah: disk `r2`/`r2_backup` fallback ke driver `local` saat `env('APP_ENV') === 'testing'` (bukan `app()->environment()` — itu memecah bootstrap Laravel saat dipanggil dari dalam file config, lihat komentar di file). Test yang peduli isi R2 tetap eksplisit `Storage::fake('r2')`.
 
 ### Task 5.3: PWA + offline ringan (§10 Ops, §4.6)
 

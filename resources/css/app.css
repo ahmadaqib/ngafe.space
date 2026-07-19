@@ -61,5 +61,7 @@ input, textarea, select { width: 100%; border: 1px solid var(--border-strong); b
 .ngafe-rating-row { display: flex; gap: var(--space-2); }
 .ngafe-rating-option { min-width: 48px; min-height: 48px; font-size: 32px; }
 .ngafe-form-actions { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+.ngafe-toast { position: fixed; z-index: var(--z-toast); left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); max-width: calc(100% - var(--space-8)); transform: translate(-50%, 8px); opacity: 0; border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); background: var(--surface-raised); color: var(--text); box-shadow: var(--shadow-float); transition: opacity var(--motion-base) var(--motion-ease), transform var(--motion-base) var(--motion-ease); }
+.ngafe-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 @media (max-width: 520px) { .ngafe-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

@@ -6,8 +6,10 @@ use App\Domain\Cafe\Models\Cafe;
 use App\Domain\Review\Events\ReviewStatusChanged;
 use App\Domain\Review\Models\Review;
 use App\Domain\Review\Models\ReviewStatus;
+use App\Jobs\GenerateShareCard;
 use App\Jobs\RecomputeCafeAggregates;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -57,6 +59,17 @@ class RatingAggregateTest extends TestCase
         $review->update(['status' => ReviewStatus::Removed]);
         ReviewStatusChanged::dispatch($review, ReviewStatus::Published);
         $this->assertSame(0, $cafe->fresh()->rating_count);
+    }
+
+    public function test_recomputing_aggregates_dispatches_a_share_card_refresh(): void
+    {
+        Bus::fake([GenerateShareCard::class]);
+        $cafe = Cafe::factory()->create();
+        Review::factory()->create(['cafe_id' => $cafe->id, 'rating' => 5, 'status' => ReviewStatus::Published]);
+
+        (new RecomputeCafeAggregates($cafe->id))->handle();
+
+        Bus::assertDispatched(GenerateShareCard::class, fn (GenerateShareCard $job): bool => $job->cafeId === $cafe->id);
     }
 
     public function test_recompute_job_is_idempotent(): void

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Cafe\Models;
 
+use App\Domain\Cafe\Exceptions\ReservedSlugPrefix;
 use App\Domain\Identity\Models\User;
 use App\Domain\Review\Models\Photo;
 use App\Domain\Review\Models\Review;
@@ -17,11 +18,20 @@ class Cafe extends Model
 {
     use HasFactory, HasUlids;
 
-    protected $fillable = ['name', 'slug', 'city', 'area', 'address', 'lat', 'lng', 'opening_hours', 'opening_hours_override', 'price_range', 'status', 'created_by', 'last_verified_at'];
+    protected $fillable = ['name', 'slug', 'city', 'area', 'address', 'lat', 'lng', 'opening_hours', 'opening_hours_override', 'price_range', 'status', 'created_by', 'last_verified_at', 'share_card_url'];
 
     protected static function newFactory(): CafeFactory
     {
         return CafeFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Cafe $cafe): void {
+            if (str_starts_with($cafe->slug, 'cafe-')) {
+                throw new ReservedSlugPrefix;
+            }
+        });
     }
 
     protected function casts(): array

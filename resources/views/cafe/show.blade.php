@@ -1,4 +1,4 @@
-<x-layout.app :title="$cafe->name.' · ngafe.space'">
+<x-layout.app :title="$cafe->name.' · ngafe.space'" :description="$metaDescription" :canonical="$canonical" :image="$metaImage" :json-ld="$jsonLd">
     <article>
         <section aria-label="Galeri foto {{ $cafe->name }}">
             @if($cafe->photos->isNotEmpty())
@@ -30,7 +30,10 @@
             <p><x-ui.badge :variant="$opening->isOpen ? 'open' : 'closed'">{{ $opening->label }}</x-ui.badge></p>
             @if($opening->activeOverride)<p class="ngafe-warning">{{ $opening->activeOverride }}</p>@endif
             <div class="ngafe-row">@foreach($cafe->categories as $category)<span class="ngafe-chip">{{ $category->name }}</span>@endforeach</div>
-            <div><a class="ngafe-button ngafe-button--secondary" href="https://www.google.com/maps/search/?api=1&amp;query={{ $cafe->lat }},{{ $cafe->lng }}" rel="external">Arah</a></div>
+            <div class="ngafe-row">
+                <a class="ngafe-button ngafe-button--secondary" href="https://www.google.com/maps/search/?api=1&amp;query={{ $cafe->lat }},{{ $cafe->lng }}" rel="external">Arah</a>
+                <button type="button" class="ngafe-button ngafe-button--secondary" data-share-button data-share-url="{{ $canonical }}" data-share-title="{{ $cafe->name }} · ngafe.space" data-share-cafe-id="{{ $cafe->id }}">Share</button>
+            </div>
         </header>
 
         <section id="review-list" class="ngafe-section ngafe-stack" data-review-list>

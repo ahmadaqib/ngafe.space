@@ -60,7 +60,19 @@ return [
             'report' => false,
         ],
 
-        'r2' => [
+        // Jobs that write here (ProcessReviewPhoto, GenerateShareCard,
+        // BackupDatabase) run synchronously in tests (QUEUE_CONNECTION=sync,
+        // phpunit.xml) even when the test itself doesn't care about
+        // storage — so `testing` gets a local disk that just works instead
+        // of an S3 client crashing on empty R2_* credentials. Tests that DO
+        // care about R2 interactions still call Storage::fake('r2'), which
+        // overrides this regardless of driver.
+        'r2' => env('APP_ENV') === 'testing' ? [
+            'driver' => 'local',
+            'root' => storage_path('app/testing-r2'),
+            'url' => 'http://testing-r2.invalid',
+            'throw' => false,
+        ] : [
             'driver' => 's3',
             'key' => env('R2_ACCESS_KEY_ID'),
             'secret' => env('R2_SECRET_ACCESS_KEY'),
@@ -72,7 +84,11 @@ return [
             'throw' => true,
         ],
 
-        'r2_backup' => [
+        'r2_backup' => env('APP_ENV') === 'testing' ? [
+            'driver' => 'local',
+            'root' => storage_path('app/testing-r2-backup'),
+            'throw' => false,
+        ] : [
             'driver' => 's3',
             'key' => env('R2_BACKUP_ACCESS_KEY_ID'),
             'secret' => env('R2_BACKUP_SECRET_ACCESS_KEY'),

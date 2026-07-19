@@ -51,8 +51,8 @@ class ShowPageTest extends TestCase
     public function test_author_sees_only_their_pending_review_for_the_current_cafe(): void
     {
         $author = User::factory()->create();
-        $currentCafe = Cafe::factory()->create(['slug' => 'cafe-current', 'status' => 'active']);
-        $otherCafe = Cafe::factory()->create(['slug' => 'cafe-other', 'status' => 'active']);
+        $currentCafe = Cafe::factory()->create(['slug' => 'slug-saat-ini', 'status' => 'active']);
+        $otherCafe = Cafe::factory()->create(['slug' => 'slug-lainnya', 'status' => 'active']);
         Review::factory()->create([
             'user_id' => $author->id,
             'cafe_id' => $currentCafe->id,
@@ -66,7 +66,7 @@ class ShowPageTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $this->actingAs($author)->get('/makassar/cafe-current')
+        $this->actingAs($author)->get('/makassar/slug-saat-ini')
             ->assertOk()
             ->assertSee('Review pending yang benar')
             ->assertDontSee('Review pending dari cafe lain')

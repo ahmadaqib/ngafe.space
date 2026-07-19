@@ -33,5 +33,7 @@ final class RecomputeCafeAggregates implements ShouldQueue
             'rating_count' => $count,
             'quality_score' => round($qualityScore, 4),
         ]);
+
+        GenerateShareCard::dispatch($this->cafeId);
     }
 }

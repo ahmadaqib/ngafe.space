@@ -58,6 +58,12 @@ final class ProcessReviewPhoto implements ShouldQueue
             'processing_error' => null,
         ]);
         Storage::disk('local')->delete($this->stagingPath);
+
+        // Covers photos added to an already-published review, which
+        // doesn't fire ReviewStatusChanged (Docs/plan.md Task 5.2 — share
+        // card must regenerate when the featured photo changes, not just
+        // when rating changes).
+        GenerateShareCard::dispatch($photo->cafe_id);
     }
 
     public function failed(?Throwable $exception): void

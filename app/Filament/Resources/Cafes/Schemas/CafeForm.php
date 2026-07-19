@@ -15,7 +15,9 @@ class CafeForm
         return $schema
             ->components([
                 TextInput::make('name')->required()->maxLength(255),
-                TextInput::make('slug')->required()->maxLength(255),
+                TextInput::make('slug')->required()->maxLength(255)
+                    ->rule('regex:/^(?!cafe-).*$/')
+                    ->validationMessages(['regex' => 'Slug tidak boleh diawali "cafe-" — awalan itu dipakai untuk halaman kategori (/{kota}/cafe-{kategori}).']),
                 TextInput::make('city')->required()->default('makassar'),
                 TextInput::make('area')->required(),
                 Textarea::make('address'),

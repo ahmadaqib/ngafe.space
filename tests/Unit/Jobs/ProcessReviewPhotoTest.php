@@ -6,9 +6,11 @@ use App\Domain\Cafe\Models\Cafe;
 use App\Domain\Identity\Models\User;
 use App\Domain\Review\Models\Photo;
 use App\Domain\Review\Models\Review;
+use App\Jobs\GenerateShareCard;
 use App\Jobs\ProcessReviewPhoto;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -18,6 +20,7 @@ class ProcessReviewPhotoTest extends TestCase
 
     public function test_job_reencodes_two_webp_variants_without_exif_and_is_idempotent(): void
     {
+        Bus::fake([GenerateShareCard::class]);
         Storage::fake('local');
         Storage::fake('r2');
         $review = $this->review();
@@ -46,6 +49,8 @@ class ProcessReviewPhotoTest extends TestCase
             $metadata = @exif_read_data(stream_get_meta_data($tmp)['uri']);
             $this->assertTrue($metadata === false || ! isset($metadata['GPSLatitude'], $metadata['GPSLongitude']));
         }
+
+        Bus::assertDispatched(GenerateShareCard::class, fn (GenerateShareCard $job): bool => $job->cafeId === $review->cafe_id);
     }
 
     private function review(): Review

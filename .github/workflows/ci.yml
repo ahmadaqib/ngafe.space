@@ -28,5 +28,5 @@ jobs:
       - run: npm ci
       - run: composer audit
       - run: php artisan test
-        env: { DB_CONNECTION: pgsql, DB_HOST: 127.0.0.1, DB_PORT: 5432, DB_DATABASE: ngafe_test, DB_USERNAME: postgres, DB_PASSWORD: postgres }
+        env: { APP_KEY: 'base64:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=', DB_CONNECTION: pgsql, DB_HOST: 127.0.0.1, DB_PORT: 5432, DB_DATABASE: ngafe_test, DB_USERNAME: postgres, DB_PASSWORD: postgres }
       - run: npm run build

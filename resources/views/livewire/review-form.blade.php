@@ -31,14 +31,14 @@
         </header>
 
         <form wire:submit="submit" data-review-draft>
-            <input wire:model="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+            <input class="ngafe-honeypot" wire:model="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 
             @if($step === 1)
                 <fieldset>
                     <legend>Kasih rating</legend>
-                    <div style="display:flex;gap:8px">
+                    <div class="ngafe-rating-row">
                         @foreach(range(1, 5) as $star)
-                            <label style="min-width:48px;min-height:48px;font-size:32px">
+                            <label class="ngafe-rating-option">
                                 <input type="radio" wire:model="rating" value="{{ $star }}" data-review-field="rating">
                                 <span aria-hidden="true">★</span><span class="sr-only">{{ $star }} bintang</span>
                             </label>
@@ -68,7 +68,7 @@
                 @error('photos.*') <p role="alert">{{ $message }}</p> @enderror
             @endif
 
-            <div style="display:flex;gap:8px;margin-top:16px">
+            <div class="ngafe-form-actions">
                 @if($step > 1)<button type="button" wire:click="previousStep">Kembali</button>@endif
                 @if($step < 3)
                     <button type="button" wire:click="nextStep">Lanjut</button>

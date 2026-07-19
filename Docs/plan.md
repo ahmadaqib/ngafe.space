@@ -257,10 +257,10 @@ trait AssertsNoPii
 - Create: `resources/css/tokens.css` (primitif §12.1 + semantik §12.2 light/dark via `@media (prefers-color-scheme)` + `data-theme`), `resources/views/components/layout/app.blade.php` (shell: bottom nav 3 item Jelajah·Cari·Kamu, safe-area), `resources/views/components/ui/{card,chip,badge,button,skeleton,sheet}.blade.php`
 - Modify: `resources/css/app.css`, `vite.config.js`, `tailwind` config (map token → utility)
 
-- [ ] Salin SEMUA nilai hex §12.1–12.3 verbatim ke `tokens.css`; komponen hanya boleh `var(--…)`. Spacing/radius/type/motion/z-index §12.4 sebagai custom properties. **Audit: baru subset token; masih ada hex/radius inline.**
-- [ ] Font: Plus Jakarta Sans variable **self-host** (`@font-face`, woff2 di `public/fonts/`); keputusan §12.4: mulai 1 family untuk semua (bundle ringan), Inter menyusul hanya jika perlu. **Audit: font belum tersedia/self-host.**
-- [ ] Komponen `sheet` (bottom drawer §14): drag handle, snap peek 45%/full 92%, Alpine + CSS transform, ≤250ms, hormati `prefers-reduced-motion`. **Audit: open/close dasar ada; drag dan snap belum ada.**
-- [ ] Verifikasi visual: halaman styleguide dev-only `/dev/tokens` (light+dark) — cek kontras pasangan token dengan tooling (axe/manual). Commit. **Audit: halaman dasar ada; validasi kontras belum tercatat.**
+- [x] Salin SEMUA nilai hex §12.1–12.3 verbatim ke `tokens.css`; komponen hanya memakai token semantik. Spacing/radius/type/motion/z-index §12.4 tersedia sebagai custom properties.
+- [x] Font Plus Jakarta Sans variable self-host melalui bundle lokal `@fontsource-variable/plus-jakarta-sans`; tidak ada request font eksternal.
+- [x] Komponen `sheet` memiliki drag handle, snap peek 45%/full 92%, transisi 250ms, focus restore, scroll lock, dan `prefers-reduced-motion`.
+- [x] Styleguide dev-only `/dev/tokens` menyediakan light/dark preview; pasangan CTA utama light/dark dijaga test kontras WCAG AA. Commit.
 
 ### Task 2.1: Route publik + halaman detail cafe (F1 — unit aha moment)
 
@@ -271,9 +271,9 @@ trait AssertsNoPii
 
 **Interfaces — Produces:** `OpeningHours::statusNow(Cafe $cafe, CarbonImmutable $now): OpeningStatus` — value object `{isOpen: bool, label: string, activeOverride: ?string}`; **override musiman menang atas jadwal normal** (§F1 AC).
 
-- [ ] TDD `OpeningHours`: (a) jam normal buka/tutup lintas tengah malam (24 jam); (b) `opening_hours_override` aktif hari ini → dipakai + `activeOverride` = label ("Jam khusus Ramadan…" → banner); (c) tanpa data jam → label "Jam belum tersedia". **Audit: implementasi ada; matriks test belum lengkap.**
-- [ ] TDD halaman: (a) cafe `active` terbaca penuh **tanpa login** + `assertNoPii`; (b) cafe `pending`/`rejected` → 404; (c) urutan konten: galeri foto (4:3 tetap, §16) → nama+rating+status buka → tag → **blok review ≤1 swipe** (review pertama server-rendered, bukan lazy JS — SEO §10); (d) review `pending` orang lain tidak tampil, tampil bagi penulisnya dengan badge "sedang ditinjau"; (e) deep-link "Arah" (`geo:`/Google Maps URL); (f) timestamp kasar "2 hari lalu". **Audit: alur inti ada; galeri/urutan dan cakupan AC masih parsial.**
-- [ ] CTA akhir daftar review: "Pernah ke sini? Ceritakan versimu" (pintu login §4.1.6 — behavior penuh Phase 4, sekarang placeholder link login). **Audit: form dan sticky CTA sudah ada, copy persis belum sesuai.**
+- [x] TDD `OpeningHours`: jam normal, buka/tutup lintas tengah malam, 24 jam, override musiman, tanpa data, dan input rusak aman tercakup.
+- [x] TDD halaman: cafe aktif publik tanpa login/no-PII; nonaktif 404; galeri 4:3 lengkap; urutan nama/rating/status/tag/review; visibility pending; deep-link Arah; timestamp kasar.
+- [x] CTA akhir daftar review memakai copy persis "Pernah ke sini? Ceritakan versimu" dan terhubung ke form/login Phase 4.
 - [x] Full-page cache anonim 5 menit untuk halaman detail (§10 Performa) — middleware cache respons untuk guest.
 - [x] Commit.
 
@@ -284,9 +284,9 @@ trait AssertsNoPii
 - Test: `tests/Feature/HomePageTest.php`
 
 - [x] Above the fold: search bar + maks **6 chip** kategori (+"Lainnya" → sheet 12 lengkap, §13 Hick) + grid kartu "Lagi rame dibahas" (sementara sort `rating_count` desc; `trending_score` asli menggantikan di Phase 6 — kolom & query SUDAH pakai `trending_score` agar tinggal diisi cron).
-- [ ] Kartu cafe 5 chunk (§13 Miller): foto user 4:3, nama, rating "4,6" + jumlah, 2 tag, jarak (bila ada)/potongan review ≤90 char potong di batas kata (§12.5). **Audit: jarak/potongan review belum dirender.**
-- [ ] TDD: (a) **cafe tanpa review published tidak muncul di seksi homepage** (§4.1 aturan keras); (b) tanpa login semua terbaca, tidak ada redirect; (c) `assertNoPii`; (d) rating format koma. **Audit: (a) dan no-PII ada; AC lain belum diuji eksplisit.**
-- [ ] Urutan chip kontekstual (§F4): weekday 09–16 WITA → `Cocok nugas & WFC` duluan; wiken → `Hidden gem / baru buka` + `Aesthetic` (uji dengan `Carbon::setTestNow`). **Audit: logika ada; test waktu belum ada.**
+- [x] Kartu cafe 5 chunk (§13 Miller): foto user/placeholder 4:3, nama, rating locale + jumlah, maks dua tag, dan potongan review ≤90 karakter pada batas kata.
+- [x] TDD homepage mencakup hanya cafe dengan review published, akses guest tanpa gate, no-PII, dan rating koma.
+- [x] Urutan chip kontekstual weekday 09–16 WITA serta wiken diuji dengan waktu deterministik.
 - [x] Commit.
 
 ### Task 2.3: Live-search + filter kategori (F3, F4-filter)
@@ -311,9 +311,9 @@ $query->when($lat && $lng, fn ($qq) => $qq
 ```
 
 - [x] TDD unit: typo "kopi anjs" tetap menemukan "Kopi Anjis"; multi kategori = irisan; jarak terurut benar (fixture 3 koordinat); hanya `active`.
-- [ ] Livewire: debounce 250ms, hasil <500ms, jumlah hasil tampil ("12 cafe cocok"), update tanpa reload. **Audit: debounce/jumlah ada; anggaran <500ms belum diukur.**
-- [ ] **Empty state cerdas (§4.2 edge):** hitung filter paling membatasi (lepas satu-satu, ambil yang menambah hasil terbanyak) → "Coba lepas 'Buka 24 jam' — ada 8 cafe lain" + CTA usulkan cafe. **Audit: saat ini memilih filter pertama yang membantu, bukan yang paling membatasi.**
-- [ ] Riwayat pencarian maks 3 chip, localStorage (§16). Commit. **Audit: belum diimplementasikan.**
+- [x] Livewire memakai debounce 250ms, satu render lokal berada di bawah anggaran 500ms, jumlah hasil tampil, dan update tanpa reload diuji.
+- [x] Empty state menghitung setiap filter dan menyarankan pelepasan yang memberi pertambahan hasil terbesar, lengkap dengan CTA.
+- [x] Riwayat pencarian maksimal tiga chip disimpan lokal, dideduplikasi, dan dapat dipakai kembali tanpa menyimpan ke server. Commit.
 
 ### Task 2.4: Lokasi & fallback area (F3)
 

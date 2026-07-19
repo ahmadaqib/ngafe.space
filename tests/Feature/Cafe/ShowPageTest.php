@@ -4,6 +4,7 @@ namespace Tests\Feature\Cafe;
 
 use App\Domain\Cafe\Models\Cafe;
 use App\Domain\Identity\Models\User;
+use App\Domain\Review\Models\Photo;
 use App\Domain\Review\Models\Review;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\AssertsNoPii;
@@ -70,5 +71,19 @@ class ShowPageTest extends TestCase
             ->assertSee('Review pending yang benar')
             ->assertDontSee('Review pending dari cafe lain')
             ->assertSee('sedang ditinjau');
+    }
+
+    public function test_gallery_only_contains_published_photos_and_direction_link(): void
+    {
+        $cafe = Cafe::factory()->create(['slug' => 'galeri', 'status' => 'active']);
+        $review = Review::factory()->create(['cafe_id' => $cafe->id]);
+        Photo::factory()->create(['review_id' => $review->id, 'cafe_id' => $cafe->id, 'url_full' => 'https://example.test/first.webp', 'status' => 'published']);
+        Photo::factory()->create(['review_id' => $review->id, 'cafe_id' => $cafe->id, 'url_full' => 'https://example.test/hidden.webp', 'status' => 'removed']);
+
+        $this->get('/makassar/galeri')->assertOk()
+            ->assertSee('https://example.test/first.webp', false)
+            ->assertDontSee('https://example.test/hidden.webp', false)
+            ->assertSee('www.google.com/maps/search', false)
+            ->assertSee('Pernah ke sini? Ceritakan versimu');
     }
 }

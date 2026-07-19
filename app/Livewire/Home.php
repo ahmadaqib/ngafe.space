@@ -13,7 +13,11 @@ class Home extends Component
     {
         $now = CarbonImmutable::now('Asia/Makassar');
         $priority = $now->isWeekend() ? ['hidden-gem-baru-buka', 'aesthetic'] : ($now->isWeekday() && $now->hour >= 9 && $now->hour < 16 ? ['cocok-nugas-wfc'] : []);
-        $categories = Category::orderByRaw("case when slug in ('".implode("','", $priority)."') then 0 else 1 end")->orderBy('sort_order')->get();
+        $categories = Category::orderBy('sort_order')->get()->sortBy(function (Category $category) use ($priority): string {
+            $position = array_search($category->slug, $priority, true);
+
+            return sprintf('%02d-%06d', $position === false ? 99 : $position, $category->sort_order);
+        })->values();
 
         return view('livewire.home', ['cafes' => app(HomeSections::class)->trending(), 'categories' => $categories])->layout('components.layout.app');
     }

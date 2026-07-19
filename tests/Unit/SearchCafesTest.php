@@ -29,8 +29,9 @@ class SearchCafesTest extends TestCase
     public function test_it_orders_results_by_haversine_distance(): void
     {
         $near = Cafe::factory()->create(['status' => 'active', 'lat' => -5.147, 'lng' => 119.432]);
-        Cafe::factory()->create(['status' => 'active', 'lat' => -5.190, 'lng' => 119.490]);
+        $middle = Cafe::factory()->create(['status' => 'active', 'lat' => -5.160, 'lng' => 119.445]);
+        $far = Cafe::factory()->create(['status' => 'active', 'lat' => -5.190, 'lng' => 119.490]);
         $results = app(SearchCafes::class)->run(null, [], -5.147, 119.432, null);
-        $this->assertTrue($results->first()->is($near));
+        $this->assertSame([$near->id, $middle->id, $far->id], $results->pluck('id')->all());
     }
 }

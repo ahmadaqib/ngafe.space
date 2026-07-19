@@ -88,7 +88,7 @@ class RatingAggregateTest extends TestCase
 
         $this->get('/makassar/tanpa-agregasi-request')
             ->assertOk()
-            ->assertSee('4,50 · 2 review');
+            ->assertSee('4,5 · 2 review');
 
         $this->assertFalse(collect($queries)->contains(
             fn (string $sql) => str_contains($sql, 'avg(') || str_contains($sql, 'sum('),

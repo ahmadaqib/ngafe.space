@@ -23,6 +23,7 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.7",
+        "pestphp/pest-plugin-browser": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.1",
         "phpunit/phpunit": "^12.5.12"
     },
@@ -54,6 +55,10 @@
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
+        ],
+        "test:browser": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "vendor/bin/pest tests/Browser"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

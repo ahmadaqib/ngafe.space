@@ -209,9 +209,10 @@ abstract class DomainException extends \Exception
 - Create: `app/Filament/Resources/{CafeResource,CategoryResource}.php` (CRUD dasar; Review/Report resource menyusul Phase 4)
 - Test: `tests/Feature/Admin/PanelAccessTest.php`
 
-- [x] Panel: `->path('ruang-admin')` · gate akses `role === 'admin'` (`FilamentUser` contract di model User) · **2FA TOTP wajib** (fitur MFA bawaan Filament di-enable + `->requiresMfa()`) · session pendek (`config/session.php` lifetime 60 utk panel via middleware).
-- [x] TDD: user role `user` → 403 ke `/ruang-admin`; guest → redirect login; `/admin` (path default) → 404.
+- [x] Panel: `->path('ruang-admin')` · gate akses `role === 'admin'` (`FilamentUser` contract di model User) · **2FA TOTP wajib** (fitur MFA bawaan Filament di-enable + `->requiresMfa()`) · session pendek — kini betul-betul di-scope ke panel via `App\Http\Middleware\ShortenAdminSessionLifetime` (30 menit, dipasang sebelum `StartSession` di middleware stack panel), bukan `SESSION_LIFETIME` global lagi (fixed 2026-07-19 — sebelumnya sempat memendekkan sesi seluruh app, bukan cuma admin).
+- [x] TDD: user role `user` → 403 ke `/ruang-admin`; guest → redirect login; `/admin` (path default) → 404; sesi memendek hanya saat request menyentuh `/ruang-admin`, bukan homepage publik (`tests/Feature/Admin/PanelAccessTest.php`).
 - [x] CRUD Cafe di Filament: form field sesuai §11 termasuk `opening_hours_override` (repeater `{label,date_start,date_end,hours}`) — dipakai seeding lapangan mulai minggu 1. CRUD Category.
+- [x] **Audit log CRUD Cafe/Category** (fixed 2026-07-19): create/update/delete lewat `App\Filament\Concerns\LogsAdminAudit` (+ `DeleteAction::after()`) menulis ke `moderation_audit_logs` yang sama dipakai flow moderasi Phase 4 — menutup celah "semua aksi admin" di §10 yang sebelumnya cuma berlaku untuk Review/Photo/Report. Diuji `tests/Feature/Admin/CrudAuditLogTest.php`.
 - [x] Commit.
 
 ### Task 1.7: No-PII test harness + CI (§10 threat #1)
@@ -395,9 +396,9 @@ final class AliasGenerator
 **Files:**
 - Create: `app/Livewire/ReviewForm.php`, `resources/views/livewire/review-form.blade.php`, `resources/js/review-draft.js`
 - Modify: `resources/views/cafe/show.blade.php` (sticky CTA)
-- Test: `tests/Feature/ReviewFormFlowTest.php` + browser test minimal (Dusk/Pest browser) jalur aha & form
+- Test: `tests/Feature/ReviewFormFlowTest.php` + browser test minimal (Dusk/Pest browser) jalur aha & form ✅ (`tests/Browser/AhaAndReviewFormTest.php`, selesai 2026-07-19 — Pest's native `pestphp/pest-plugin-browser` + Playwright chromium, bukan Dusk; 3 test nyata: aha path 2-tap tanpa login, sheet login Alpine terbuka untuk guest, progres 3 langkah untuk user login. Jalankan via `composer test:browser`, terpasang sebagai step CI terpisah)
 
-- [ ] 3 langkah ber-progress (Zeigarnik §13): Rating (bintang 48px) + quick-tag → Cerita (≥30 char, placeholder "Wifinya gimana? Betah berapa jam? Habis berapa?") → Foto opsional. Draft otomatis localStorage; kembali → "Reviewmu tinggal selangkah lagi".
+- [x] 3 langkah ber-progress (Zeigarnik §13): Rating (bintang 48px) + quick-tag → Cerita (≥30 char, placeholder "Wifinya gimana? Betah berapa jam? Habis berapa?") → Foto opsional. Draft otomatis localStorage (`resources/js/review-draft.js`); kembali → "Reviewmu tinggal selangkah lagi". Progres 3-langkah kini terverifikasi di browser nyata; persistensi localStorage lintas full-page-reload belum ada test browser eksplisit (di luar API publik plugin browser Pest saat ini) — cukup diuji lewat state Livewire di `ReviewFormFlowTest`.
 - [x] Belum login → **bottom sheet** copy §16 → OAuth → kembali PERSIS ke form dengan state utuh (intent sessionStorage, §4.3). Cancel → tanpa error menakutkan.
 - [x] Peak-End (§4.4.6): layar sukses personality (varian dirotasi) + review tampil optimistic + tawaran "review cafe lain".
 - [x] Sticky CTA "Tulis review" muncul SETELAH scroll melewati blok review (§16). Commit.

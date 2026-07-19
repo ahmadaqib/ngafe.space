@@ -33,6 +33,38 @@ class SeoTest extends TestCase
         $this->assertSame(12, $jsonLd['aggregateRating']['reviewCount']);
     }
 
+    public function test_json_ld_cannot_be_broken_out_of_by_a_closing_script_tag_in_cafe_fields(): void
+    {
+        // A cafe name/address containing "</script>" must not be able to
+        // terminate the JSON-LD <script> tag early and inject markup —
+        // json_encode's default `/` -> `\/` escaping is what prevents this;
+        // JSON_UNESCAPED_SLASHES must never be used for this block.
+        $cafe = Cafe::factory()->create([
+            'name' => '</script><img src=x onerror=alert(1)>',
+            'address' => '</script><script>alert(2)</script>',
+            'slug' => 'nama-berbahaya',
+            'status' => 'active',
+        ]);
+        Review::factory()->for($cafe)->create(['status' => 'published']);
+
+        $response = $this->get('/makassar/nama-berbahaya');
+
+        $response->assertOk();
+        $body = $response->getContent();
+
+        $this->assertStringNotContainsString('</script><img', $body);
+        $this->assertStringContainsString('<\/script><img', $body);
+
+        // Non-greedy match stops at the first real `</script>`. If the
+        // payload's internal slash weren't escaped, that would be the
+        // injected tag rather than this block's real closing tag, and the
+        // captured "JSON" would fail to decode.
+        preg_match('/<script type="application\/ld\+json">(.*?)<\/script>/s', $body, $matches);
+        $jsonLd = json_decode($matches[1] ?? '', true);
+        $this->assertIsArray($jsonLd);
+        $this->assertSame('</script><img src=x onerror=alert(1)>', $jsonLd['name']);
+    }
+
     public function test_cafe_detail_page_without_ratings_omits_aggregate_rating(): void
     {
         $cafe = Cafe::factory()->create(['slug' => 'belum-ada-rating', 'status' => 'active']);

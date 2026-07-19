@@ -442,11 +442,14 @@ final class AliasGenerator
 - [x] Job deterministik overwrite (`share-cards/{cafe_id}.webp`, R2) idempoten; regenerate didispatch dari `RecomputeCafeAggregates` (rating berubah) DAN `ProcessReviewPhoto` (foto baru pada review yang sudah published); meta `og:image` menunjuk `cafes.share_card_url` (fallback foto pertama). Font Plus Jakarta Sans di-instance dari variable woff2 bundel npm ke TTF statis (`resources/fonts/*.ttf`, fonttools) — self-host tetap terjaga, tanpa font eksternal. Tombol share (`resources/js/share.js`): `navigator.share` bila tersedia, fallback `navigator.clipboard` + toast "Link kesalin!" (`.ngafe-toast`, token `--z-toast`); event `share_tap` didispatch via `CustomEvent('ngafe:analytics')` (Phase 7 tinggal listen, tidak membangun infra analytics lebih awal). Diverifikasi visual (render nyata dicek) + browser test nyata (`tests/Browser/ShareButtonTest.php`) + unit test job (`GenerateShareCardTest.php`, 4 test). Commit.
 - **Efek samping penting:** ketahuan `QUEUE_CONNECTION=sync` di test (phpunit.xml) membuat job manapun yang menyentuh `Storage::disk('r2')` jalan sinkron di SEMUA test yang memicu `ReviewStatusChanged`/`ProcessReviewPhoto` — bukan cuma test foto. `config/filesystems.php` diubah: disk `r2`/`r2_backup` fallback ke driver `local` saat `env('APP_ENV') === 'testing'` (bukan `app()->environment()` — itu memecah bootstrap Laravel saat dipanggil dari dalam file config, lihat komentar di file). Test yang peduli isi R2 tetap eksplisit `Storage::fake('r2')`.
 
-### Task 5.3: PWA + offline ringan (§10 Ops, §4.6)
+### Task 5.3: PWA + offline ringan (§10 Ops, §4.6) ✅ (selesai 2026-07-19)
 
-**Files:** `public/manifest.webmanifest`, `public/sw.js`, register di layout
+**Files:** `public/manifest.webmanifest`, `public/sw.js`, `public/offline.html`, `public/icons/*.png`, register di layout
 
-- [ ] Cache aset statis + halaman terakhir; offline → "Sinyalnya lagi ngambek" + retry, cache terakhir tetap tampil (§4.6). Installable (Lighthouse PWA pass). Commit.
+- [x] Manifest: nama/deskripsi ID, `display: standalone`, `theme_color`/`background_color` dari token (`#c4451c`/`#faf8f5`), ikon 192/512 + varian maskable — digambar programatik (GD/Intervention, titik terracotta di atas sand, brand mark §12.0 "titik bulat penuh"), bukan gambar AI-generated (§15).
+- [x] `sw.js`: cache-first untuk `/build/`, `/icons/`, `/fonts/`; halaman navigasi network-first dengan fallback ke halaman ter-cache terakhir untuk URL yang sama, dan ke `offline.html` ("Sinyalnya lagi ngambek" + tombol coba lagi) kalau URL itu belum pernah dibuka. `apple-touch-icon` + meta iOS PWA di layout.
+- [x] Diverifikasi: manifest valid + berisi field wajib, `sw.js`/`offline.html` ada & isinya benar (`tests/Feature/PwaTest.php` — file statis publik tidak lewat kernel Laravel saat test HTTP, jadi dicek dari filesystem, bukan `$this->get()`), **dan service worker benar-benar teregistrasi & aktif di browser nyata** (`tests/Browser/PwaTest.php`, Playwright).
+- **Bug tak terkait ketemu saat menulis test:** `tests/Feature/PwaTest.php` awalnya tidak pakai `RefreshDatabase` — homepage (`Home::class`) query ke tabel yang belum termigrasi lempar exception, tapi `APP_DEBUG=true` merender itu jadi halaman debug cantik ber-status mirip 200, bukan error test yang jelas. Diperbaiki + diaudit: tidak ada test lain di codebase dengan pola sama (request HTTP tanpa `RefreshDatabase`). Commit.
 
 ### Task 5.4: Security headers + CSP + rate limiter global (§10 hardening lapis 3)
 

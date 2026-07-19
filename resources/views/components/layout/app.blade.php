@@ -23,9 +23,17 @@
         <meta name="twitter:card" content="summary_large_image">
     @endif
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
     <meta name="theme-color" content="#C4451C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ngafe.space">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     @if($jsonLd)
-        <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        {{-- JSON_UNESCAPED_SLASHES deliberately omitted: it would let a
+             string field (cafe name, address, ...) containing "</script>"
+             break out of this tag and inject markup. Default / -> \/
+             escaping neutralizes that regardless of field content. --}}
+        <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE) !!}</script>
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles

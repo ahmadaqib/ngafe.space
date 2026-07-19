@@ -8,9 +8,11 @@
 
 **Architecture:** Modular monolith Laravel (`app/Domain/{Cafe,Review,Identity,Moderation}`) dengan disiplin clean architecture pragmatis (§9): controller/Livewire tipis → satu Action per use case (`handle()`) → side-effect lintas domain via event → presentasi keluar hanya lewat API Resource/Blade yang dijaga test no-PII. Model Eloquent penuh tanpa repository interface.
 
-**Tech Stack:** Laravel 13 · Livewire 3 + Alpine.js · Filament 5 (admin) · PostgreSQL 17 (pg_trgm, Haversine SQL) · Tailwind CSS 4 (design tokens §12 sebagai CSS variables) · Pest 4 (test) · Cloudflare R2 (foto) · MapLibre GL + OpenFreeMap · Resend (email) · Sentry + UptimeRobot + Healthchecks.io · Umami (analytics).
+**Tech Stack:** Laravel 13 · Livewire 4 + Alpine.js · Filament 5 (admin) · PostgreSQL 17 (pg_trgm, Haversine SQL) · Tailwind CSS 4 (design tokens §12 sebagai CSS variables) · Pest 4 (test) · Cloudflare R2 (foto) · MapLibre GL + OpenFreeMap · Resend (email) · Sentry + UptimeRobot + Healthchecks.io · Umami (analytics).
 
-> **Catatan versi:** Spec menulis "Laravel 11 + Filament (3) + PostgreSQL 16". Keputusan 2026-07-18: pakai versi stabil terbaru — hasil install aktual **Laravel 13.20 + Filament 5.7 + Pest 4**, dan Postgres lokal yang sudah terpasang adalah **17.10** (≥16, pg_trgm tersedia). Seluruh isi spec tetap berlaku; hanya nomor versi berubah.
+> **Catatan versi:** Spec menulis "Laravel 11 + Filament (3) + PostgreSQL 16". Keputusan 2026-07-18: pakai versi stabil terbaru — hasil install aktual **Laravel 13.20 + Livewire 4.3 + Filament 5.7 + Pest 4**, dan Postgres lokal yang sudah terpasang adalah **17.10** (≥16, pg_trgm tersedia). Seluruh isi spec tetap berlaku; hanya nomor versi berubah.
+
+> **Audit 2026-07-19:** status Phase 0–4 diverifikasi ulang terhadap kode dan test. Detail bukti, deviasi, serta pekerjaan tersisa ada di [`Docs/audit-phase-0-4.md`](audit-phase-0-4.md). Checkbox yang sebelumnya terlalu optimistis dikoreksi di bawah.
 
 ## Global Constraints (berlaku implisit di SEMUA task)
 
@@ -133,7 +135,7 @@ Schema::create('reviews', function (Blueprint $t) {
 // photos: id ulid, review_id FK, cafe_id FK, url_card, url_full, width, height,
 //   status (published/pending/removed), content_hash (dedup/idempotensi), created_at
 // categories: id, name, slug unique, icon (nama ikon Lucide), sort_order
-// cafe_category: cafe_id, category_id, source enum('admin','crowd'), confidence decimal
+// cafe_category: cafe_id, category_id, source enum-like('admin','crowd','auto'), confidence decimal
 // review_tags: review_id, category_id (quick-tag §F5)
 // reports: id ulid, reporter_id FK users, review_id nullable FK, photo_id nullable FK,
 //   reason enum §11, note nullable, status open/resolved, resolved_by nullable, timestamps
@@ -255,10 +257,10 @@ trait AssertsNoPii
 - Create: `resources/css/tokens.css` (primitif §12.1 + semantik §12.2 light/dark via `@media (prefers-color-scheme)` + `data-theme`), `resources/views/components/layout/app.blade.php` (shell: bottom nav 3 item Jelajah·Cari·Kamu, safe-area), `resources/views/components/ui/{card,chip,badge,button,skeleton,sheet}.blade.php`
 - Modify: `resources/css/app.css`, `vite.config.js`, `tailwind` config (map token → utility)
 
-- [x] Salin SEMUA nilai hex §12.1–12.3 verbatim ke `tokens.css`; komponen hanya boleh `var(--…)`. Spacing/radius/type/motion/z-index §12.4 sebagai custom properties.
-- [x] Font: Plus Jakarta Sans variable **self-host** (`@font-face`, woff2 di `public/fonts/`); keputusan §12.4: mulai 1 family untuk semua (bundle ringan), Inter menyusul hanya jika perlu.
-- [x] Komponen `sheet` (bottom drawer §14): drag handle, snap peek 45%/full 92%, Alpine + CSS transform, ≤250ms, hormati `prefers-reduced-motion`.
-- [x] Verifikasi visual: halaman styleguide dev-only `/dev/tokens` (light+dark) — cek kontras pasangan token dengan tooling (axe/manual). Commit.
+- [ ] Salin SEMUA nilai hex §12.1–12.3 verbatim ke `tokens.css`; komponen hanya boleh `var(--…)`. Spacing/radius/type/motion/z-index §12.4 sebagai custom properties. **Audit: baru subset token; masih ada hex/radius inline.**
+- [ ] Font: Plus Jakarta Sans variable **self-host** (`@font-face`, woff2 di `public/fonts/`); keputusan §12.4: mulai 1 family untuk semua (bundle ringan), Inter menyusul hanya jika perlu. **Audit: font belum tersedia/self-host.**
+- [ ] Komponen `sheet` (bottom drawer §14): drag handle, snap peek 45%/full 92%, Alpine + CSS transform, ≤250ms, hormati `prefers-reduced-motion`. **Audit: open/close dasar ada; drag dan snap belum ada.**
+- [ ] Verifikasi visual: halaman styleguide dev-only `/dev/tokens` (light+dark) — cek kontras pasangan token dengan tooling (axe/manual). Commit. **Audit: halaman dasar ada; validasi kontras belum tercatat.**
 
 ### Task 2.1: Route publik + halaman detail cafe (F1 — unit aha moment)
 
@@ -269,9 +271,9 @@ trait AssertsNoPii
 
 **Interfaces — Produces:** `OpeningHours::statusNow(Cafe $cafe, CarbonImmutable $now): OpeningStatus` — value object `{isOpen: bool, label: string, activeOverride: ?string}`; **override musiman menang atas jadwal normal** (§F1 AC).
 
-- [x] TDD `OpeningHours`: (a) jam normal buka/tutup lintas tengah malam (24 jam); (b) `opening_hours_override` aktif hari ini → dipakai + `activeOverride` = label ("Jam khusus Ramadan…" → banner); (c) tanpa data jam → label "Jam belum tersedia".
-- [x] TDD halaman: (a) cafe `active` terbaca penuh **tanpa login** + `assertNoPii`; (b) cafe `pending`/`rejected` → 404; (c) urutan konten: galeri foto (4:3 tetap, §16) → nama+rating+status buka → tag → **blok review ≤1 swipe** (review pertama server-rendered, bukan lazy JS — SEO §10); (d) review `pending` orang lain tidak tampil, tampil bagi penulisnya dengan badge "sedang ditinjau"; (e) deep-link "Arah" (`geo:`/Google Maps URL); (f) timestamp kasar "2 hari lalu".
-- [x] CTA akhir daftar review: "Pernah ke sini? Ceritakan versimu" (pintu login §4.1.6 — behavior penuh Phase 4, sekarang placeholder link login).
+- [ ] TDD `OpeningHours`: (a) jam normal buka/tutup lintas tengah malam (24 jam); (b) `opening_hours_override` aktif hari ini → dipakai + `activeOverride` = label ("Jam khusus Ramadan…" → banner); (c) tanpa data jam → label "Jam belum tersedia". **Audit: implementasi ada; matriks test belum lengkap.**
+- [ ] TDD halaman: (a) cafe `active` terbaca penuh **tanpa login** + `assertNoPii`; (b) cafe `pending`/`rejected` → 404; (c) urutan konten: galeri foto (4:3 tetap, §16) → nama+rating+status buka → tag → **blok review ≤1 swipe** (review pertama server-rendered, bukan lazy JS — SEO §10); (d) review `pending` orang lain tidak tampil, tampil bagi penulisnya dengan badge "sedang ditinjau"; (e) deep-link "Arah" (`geo:`/Google Maps URL); (f) timestamp kasar "2 hari lalu". **Audit: alur inti ada; galeri/urutan dan cakupan AC masih parsial.**
+- [ ] CTA akhir daftar review: "Pernah ke sini? Ceritakan versimu" (pintu login §4.1.6 — behavior penuh Phase 4, sekarang placeholder link login). **Audit: form dan sticky CTA sudah ada, copy persis belum sesuai.**
 - [x] Full-page cache anonim 5 menit untuk halaman detail (§10 Performa) — middleware cache respons untuk guest.
 - [x] Commit.
 
@@ -282,9 +284,9 @@ trait AssertsNoPii
 - Test: `tests/Feature/HomePageTest.php`
 
 - [x] Above the fold: search bar + maks **6 chip** kategori (+"Lainnya" → sheet 12 lengkap, §13 Hick) + grid kartu "Lagi rame dibahas" (sementara sort `rating_count` desc; `trending_score` asli menggantikan di Phase 6 — kolom & query SUDAH pakai `trending_score` agar tinggal diisi cron).
-- [x] Kartu cafe 5 chunk (§13 Miller): foto user 4:3, nama, rating "4,6" + jumlah, 2 tag, jarak (bila ada)/potongan review ≤90 char potong di batas kata (§12.5).
-- [x] TDD: (a) **cafe tanpa review published tidak muncul di seksi homepage** (§4.1 aturan keras); (b) tanpa login semua terbaca, tidak ada redirect; (c) `assertNoPii`; (d) rating format koma.
-- [x] Urutan chip kontekstual (§F4): weekday 09–16 WITA → `Cocok nugas & WFC` duluan; wiken → `Hidden gem / baru buka` + `Aesthetic` (uji dengan `Carbon::setTestNow`).
+- [ ] Kartu cafe 5 chunk (§13 Miller): foto user 4:3, nama, rating "4,6" + jumlah, 2 tag, jarak (bila ada)/potongan review ≤90 char potong di batas kata (§12.5). **Audit: jarak/potongan review belum dirender.**
+- [ ] TDD: (a) **cafe tanpa review published tidak muncul di seksi homepage** (§4.1 aturan keras); (b) tanpa login semua terbaca, tidak ada redirect; (c) `assertNoPii`; (d) rating format koma. **Audit: (a) dan no-PII ada; AC lain belum diuji eksplisit.**
+- [ ] Urutan chip kontekstual (§F4): weekday 09–16 WITA → `Cocok nugas & WFC` duluan; wiken → `Hidden gem / baru buka` + `Aesthetic` (uji dengan `Carbon::setTestNow`). **Audit: logika ada; test waktu belum ada.**
 - [x] Commit.
 
 ### Task 2.3: Live-search + filter kategori (F3, F4-filter)
@@ -309,9 +311,9 @@ $query->when($lat && $lng, fn ($qq) => $qq
 ```
 
 - [x] TDD unit: typo "kopi anjs" tetap menemukan "Kopi Anjis"; multi kategori = irisan; jarak terurut benar (fixture 3 koordinat); hanya `active`.
-- [x] Livewire: debounce 250ms, hasil <500ms, jumlah hasil tampil ("12 cafe cocok"), update tanpa reload.
-- [x] **Empty state cerdas (§4.2 edge):** hitung filter paling membatasi (lepas satu-satu, ambil yang menambah hasil terbanyak) → "Coba lepas 'Buka 24 jam' — ada 8 cafe lain" + CTA usulkan cafe.
-- [x] Riwayat pencarian maks 3 chip, localStorage (§16). Commit.
+- [ ] Livewire: debounce 250ms, hasil <500ms, jumlah hasil tampil ("12 cafe cocok"), update tanpa reload. **Audit: debounce/jumlah ada; anggaran <500ms belum diukur.**
+- [ ] **Empty state cerdas (§4.2 edge):** hitung filter paling membatasi (lepas satu-satu, ambil yang menambah hasil terbanyak) → "Coba lepas 'Buka 24 jam' — ada 8 cafe lain" + CTA usulkan cafe. **Audit: saat ini memilih filter pertama yang membantu, bukan yang paling membatasi.**
+- [ ] Riwayat pencarian maks 3 chip, localStorage (§16). Commit. **Audit: belum diimplementasikan.**
 
 ### Task 2.4: Lokasi & fallback area (F3)
 
@@ -375,7 +377,7 @@ final class AliasGenerator
 }
 ```
 
-- [ ] TDD: deterministik (2× panggil = sama); user sama cafe beda → alias beda; user beda cafe sama → beda; tidak reversible (tidak memuat id). Pool kata final boleh diperluas — aturan tetap. Commit.
+- [x] TDD: deterministik (2× panggil = sama); user sama cafe beda → alias beda; user beda cafe sama → beda; tidak reversible (tidak memuat id). Pool kata final boleh diperluas — aturan tetap. Commit.
 
 ### Task 4.2: SubmitReview/EditReview Actions + guards (F5)
 
@@ -385,7 +387,7 @@ final class AliasGenerator
 
 **Interfaces — Produces:** `SubmitReview::handle(User $u, Cafe $c, int $rating, string $body, array $tagIds): Review` — melempar `DuplicateReview` (arahkan ke edit), `ReviewLimitExceeded`; dispatch `ReviewStatusChanged`.
 
-- [ ] TDD: (a) valid → review published + alias terisi dari `AliasGenerator`; (b) review kedua cafe sama → `DuplicateReview`; `EditReview` → update + `is_edited`, BUKAN duplikat (§4.4 edge); (c) rate limit 3/jam & 10/hari → `ReviewLimitExceeded` dengan `userMessage()` santai §16; (d) auto-flag heuristik §10: akun <24 jam + rating 1 bertubi ke 1 cafe → status `pending`; kata terlarang (config `moderation.banned_words`, ID + lokal) → `pending`; (e) honeypot & hash duplikat konten ditolak; (f) hapus akun → pilihan anonimkan permanen / hapus review (UU PDP §10).
+- [x] TDD: (a) valid → review published + alias terisi dari `AliasGenerator`; (b) review kedua cafe sama → `DuplicateReview`; `EditReview` → update + `is_edited`, BUKAN duplikat (§4.4 edge); (c) rate limit 3/jam & 10/hari → `ReviewLimitExceeded` dengan `userMessage()` santai §16; (d) auto-flag heuristik §10: akun <24 jam + rating 1 bertubi ke 1 cafe → status `pending`; kata terlarang (config `moderation.banned_words`, ID + lokal) → `pending`; (e) honeypot & hash duplikat konten ditolak; (f) hapus akun → pilihan anonimkan permanen / hapus review (UU PDP §10).
 - [ ] Commit per sub-behavior (guards dulu, actions kemudian).
 
 ### Task 4.3: Form review 3 langkah + login bottom sheet (F5, §4.3–4.4)
@@ -396,9 +398,9 @@ final class AliasGenerator
 - Test: `tests/Feature/ReviewFormFlowTest.php` + browser test minimal (Dusk/Pest browser) jalur aha & form
 
 - [ ] 3 langkah ber-progress (Zeigarnik §13): Rating (bintang 48px) + quick-tag → Cerita (≥30 char, placeholder "Wifinya gimana? Betah berapa jam? Habis berapa?") → Foto opsional. Draft otomatis localStorage; kembali → "Reviewmu tinggal selangkah lagi".
-- [ ] Belum login → **bottom sheet** copy §16 → OAuth → kembali PERSIS ke form dengan state utuh (intent sessionStorage, §4.3). Cancel → tanpa error menakutkan.
-- [ ] Peak-End (§4.4.6): layar sukses personality (varian dirotasi) + review tampil optimistic + tawaran "review cafe lain".
-- [ ] Sticky CTA "Tulis review" muncul SETELAH scroll melewati blok review (§16). Commit.
+- [x] Belum login → **bottom sheet** copy §16 → OAuth → kembali PERSIS ke form dengan state utuh (intent sessionStorage, §4.3). Cancel → tanpa error menakutkan.
+- [x] Peak-End (§4.4.6): layar sukses personality (varian dirotasi) + review tampil optimistic + tawaran "review cafe lain".
+- [x] Sticky CTA "Tulis review" muncul SETELAH scroll melewati blok review (§16). Commit.
 
 ### Task 4.4: Pipeline foto (F6, §9, §10 upload)
 
@@ -406,9 +408,9 @@ final class AliasGenerator
 - Create: `app/Jobs/ProcessReviewPhoto.php`, `app/Domain/Review/Actions/AttachPhotos.php`, `resources/js/photo-upload.js` (browser-image-compression), `config/filesystems.php` disk `r2` + `r2_backup`
 - Test: `tests/Unit/Jobs/ProcessReviewPhotoTest.php` (Storage::fake), `tests/Feature/PhotoUploadTest.php`
 
-- [ ] Client: kompres maks sisi 1600px target ≤300KB WebP sebelum kirim; tolak non-gambar/>10MB DI CLIENT dengan pesan jelas (§F6).
+- [x] Client: kompres maks sisi 1600px target ≤300KB WebP sebelum kirim; tolak non-gambar/>10MB DI CLIENT dengan pesan jelas (§F6).
 - [ ] Server (job, queue): validasi MIME **dari magic bytes** → re-encode paksa WebP (Intervention Image) varian **400px (kartu) & 1600px (detail)** → **strip EXIF/GPS total** → nama UUID → R2 (bukan web-root), serve dari domain terpisah cookie-less. Retry 3× backoff; idempotent via `content_hash`; gagal final → `failed_jobs` + Sentry (§10 v1.4).
-- [ ] TDD: EXIF GPS hilang di output; upload gagal 1 foto → teks review tetap tersimpan + retry per-foto (§F6 AC); rate limit 20 foto/hari.
+- [x] TDD: EXIF GPS hilang di output; upload gagal 1 foto → teks review tetap tersimpan + retry per-foto (§F6 AC); rate limit 20 foto/hari.
 - [ ] Commit.
 
 ### Task 4.5: Moderasi + report + email transaksional (§10 Moderasi, §4.4.7)
@@ -417,10 +419,10 @@ final class AliasGenerator
 - Create: `app/Domain/Moderation/Actions/{SubmitReport,ModerateReview,ResolveReport}.php`, `app/Filament/Resources/{ReviewResource,ReportResource}.php`, `app/Mail/{ReviewModeratedMail,AdminDigestMail}.php`, `app/Console/Commands/SendAdminDigest.php`, halaman `Kontribusimu` (`app/Livewire/MyContributions.php`)
 - Test: `tests/Feature/ModerationFlowTest.php`
 
-- [ ] Report reasons §10 (termasuk `membuka_identitas`, `info_salah`); ≥3 report unik → auto `pending`; rate limit report 10/hari.
-- [ ] Filament: antrian moderasi (approve/takedown/ban), **alias tampil default — identitas penuh hanya via aksi "reveal" ber-audit-log** (§10 threat #7); semua aksi admin ter-audit-log; kill switch unpublish seketika (§10 Ops); report `info_salah` diprioritaskan saat override musiman aktif (§F1).
-- [ ] Email (Resend, `MAIL_MAILER=resend`): hasil moderasi ke penulis; digest harian admin bila ada antrian. TDD `Mail::fake`.
-- [ ] Prosedur keberatan konten (§10 compliance): halaman "Keberatan atas Konten" + form tanpa akun → review ter-suspend `pending` → keputusan tertulis + banding 1×, semua tercatat. Commit.
+- [x] Report reasons §10 (termasuk `membuka_identitas`, `info_salah`); ≥3 report unik → auto `pending`; rate limit report 10/hari.
+- [x] Filament: antrian moderasi (approve/takedown/ban), **alias tampil default — identitas penuh hanya via aksi "reveal" ber-audit-log** (§10 threat #7); semua aksi admin ter-audit-log; kill switch unpublish seketika (§10 Ops); report `info_salah` diprioritaskan saat override musiman aktif (§F1).
+- [x] Email (Resend, `MAIL_MAILER=resend`): hasil moderasi ke penulis; digest harian admin bila ada antrian. TDD `Mail::fake`.
+- [x] Prosedur keberatan konten (§10 compliance): halaman "Keberatan atas Konten" + form tanpa akun → review ter-suspend `pending` → keputusan tertulis + banding 1×, semua tercatat. Commit.
 
 ---
 

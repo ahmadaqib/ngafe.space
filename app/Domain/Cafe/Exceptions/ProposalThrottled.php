@@ -6,5 +6,8 @@ use App\Exceptions\DomainException;
 
 class ProposalThrottled extends DomainException
 {
-    public function userMessage(): string { return 'Usulanmu sudah cukup banyak hari ini. Coba lagi besok ya.'; }
+    public function userMessage(): string
+    {
+        return 'Usulanmu sudah cukup banyak hari ini. Coba lagi besok ya.';
+    }
 }

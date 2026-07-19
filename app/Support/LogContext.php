@@ -16,6 +16,7 @@ class LogContext
                 throw new InvalidArgumentException("Unsafe log context key: {$key}");
             }
         }
+
         return $context;
     }
 }

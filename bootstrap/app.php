@@ -1,11 +1,11 @@
 <?php
 
+use App\Exceptions\DomainException;
+use App\Http\Middleware\AssignRequestId;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use App\Exceptions\DomainException;
-use App\Http\Middleware\AssignRequestId;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return back()->with('toast_error', $exception->userMessage());
         });
-        $exceptions->render(function (\Throwable $exception, Request $request) {
+        $exceptions->render(function (Throwable $exception, Request $request) {
             if ($exception instanceof DomainException || ! $request->expectsJson()) {
                 return null;
             }

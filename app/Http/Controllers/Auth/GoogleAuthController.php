@@ -14,7 +14,10 @@ class GoogleAuthController extends Controller
 {
     public function redirect(Request $request): RedirectResponse
     {
-        $request->session()->put('auth.intended_url', url()->previous());
+        $intended = $this->safeIntendedUrl($request->string('intended')->toString() ?: url()->previous());
+        $request->session()->put('auth.intended_url', $intended);
+        $request->session()->put('auth.intent', $request->string('intent')->limit(120)->toString());
+
         return Socialite::driver('google')->scopes(['openid', 'email'])->redirect();
     }
 
@@ -22,11 +25,28 @@ class GoogleAuthController extends Controller
     {
         try {
             $user = $handleGoogleCallback->handle(Socialite::driver('google')->user());
+            if ($user->status !== 'active') {
+                return redirect()->to($request->session()->pull('auth.intended_url', '/'))
+                    ->with('toast_error', 'Akun ini sedang dinonaktifkan. Hubungi pengelola jika kamu ingin mengajukan keberatan.');
+            }
             Auth::login($user, true);
             $request->session()->regenerate();
+
             return redirect()->to($request->session()->pull('auth.intended_url', '/'));
         } catch (Throwable) {
-            return redirect('/')->with('toast_error', 'Yah, gagal nyambung ke Google. Coba lagi ya.');
+            return redirect()->to($request->session()->pull('auth.intended_url', '/'))
+                ->with('toast_error', 'Yah, gagal nyambung ke Google. Coba lagi ya.');
         }
+    }
+
+    private function safeIntendedUrl(string $url): string
+    {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return $url;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return $host === request()->getHost() ? $url : '/';
     }
 }

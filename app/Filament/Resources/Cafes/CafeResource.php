@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\Cafes;
 
+use App\Domain\Cafe\Models\Cafe;
 use App\Filament\Resources\Cafes\Pages\CreateCafe;
 use App\Filament\Resources\Cafes\Pages\EditCafe;
 use App\Filament\Resources\Cafes\Pages\ListCafes;
 use App\Filament\Resources\Cafes\Schemas\CafeForm;
 use App\Filament\Resources\Cafes\Tables\CafesTable;
-use App\Domain\Cafe\Models\Cafe;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('cafe_category', function (Blueprint $table): void {
@@ -15,5 +16,9 @@ return new class extends Migration {
             $table->primary(['cafe_id', 'category_id']);
         });
     }
-    public function down(): void { Schema::dropIfExists('cafe_category'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('cafe_category');
+    }
 };

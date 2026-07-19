@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('cafes', function (Blueprint $table): void {
@@ -31,5 +32,9 @@ return new class extends Migration {
             $table->index(['city', 'status']);
         });
     }
-    public function down(): void { Schema::dropIfExists('cafes'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('cafes');
+    }
 };

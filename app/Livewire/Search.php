@@ -1,4 +1,47 @@
 <?php
+
 namespace App\Livewire;
-use App\Domain\Cafe\Models\Category; use App\Domain\Cafe\Queries\SearchCafes; use Livewire\Attributes\On; use Livewire\Component;
-class Search extends Component { public string $q=''; public array $categorySlugs=[]; public ?string $area=null; public ?float $lat=null; public ?float $lng=null; #[On('geo-ready')] public function geoReady(float $lat,float $lng): void {$this->lat=$lat;$this->lng=$lng;} public function render(){ $query=app(SearchCafes::class); $results=$query->run($this->q,$this->categorySlugs,$this->lat,$this->lng,$this->area); $suggestion=null; if($results->isEmpty()&&count($this->categorySlugs)>1){foreach($this->categorySlugs as $slug){$without=array_values(array_diff($this->categorySlugs,[$slug]));$count=$query->run($this->q,$without,$this->lat,$this->lng,$this->area)->count();if($count){$suggestion=['slug'=>$slug,'count'=>$count];break;}}} return view('livewire.search',['results'=>$results,'suggestion'=>$suggestion,'categories'=>Category::orderBy('sort_order')->get(),'areas'=>['tamalanrea'=>'Tamalanrea','panakkukang'=>'Panakkukang','losari'=>'Losari/Pantai','antang'=>'Antang','hertasning'=>'Hertasning','daya'=>'Daya','sekitar-unhas'=>'Sekitar Unhas','sekitar-unm-uin'=>'Sekitar UNM/UIN']])->layout('components.layout.app');} }
+
+use App\Domain\Cafe\Models\Category;
+use App\Domain\Cafe\Queries\SearchCafes;
+use Livewire\Attributes\On;
+use Livewire\Component;
+
+class Search extends Component
+{
+    public string $q = '';
+
+    public array $categorySlugs = [];
+
+    public ?string $area = null;
+
+    public ?float $lat = null;
+
+    public ?float $lng = null;
+
+    #[On('geo-ready')]
+    public function geoReady(float $lat, float $lng): void
+    {
+        $this->lat = $lat;
+        $this->lng = $lng;
+    }
+
+    public function render()
+    {
+        $query = app(SearchCafes::class);
+        $results = $query->run($this->q, $this->categorySlugs, $this->lat, $this->lng, $this->area);
+        $suggestion = null;
+        if ($results->isEmpty() && count($this->categorySlugs) > 1) {
+            foreach ($this->categorySlugs as $slug) {
+                $without = array_values(array_diff($this->categorySlugs, [$slug]));
+                $count = $query->run($this->q, $without, $this->lat, $this->lng, $this->area)->count();
+                if ($count) {
+                    $suggestion = ['slug' => $slug, 'count' => $count];
+                    break;
+                }
+            }
+        }
+
+return view('livewire.search', ['results' => $results, 'suggestion' => $suggestion, 'categories' => Category::orderBy('sort_order')->get(), 'areas' => ['tamalanrea' => 'Tamalanrea', 'panakkukang' => 'Panakkukang', 'losari' => 'Losari/Pantai', 'antang' => 'Antang', 'hertasning' => 'Hertasning', 'daya' => 'Daya', 'sekitar-unhas' => 'Sekitar Unhas', 'sekitar-unm-uin' => 'Sekitar UNM/UIN']])->layout('components.layout.app');
+    }
+}

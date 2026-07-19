@@ -12,7 +12,9 @@ trait AssertsNoPii
         $body = $response->getContent();
         foreach ($users as $user) {
             $this->assertStringNotContainsString((string) $user->email, $body);
-            if (filled($user->google_sub)) $this->assertStringNotContainsString((string) $user->google_sub, $body);
+            if (filled($user->google_sub)) {
+                $this->assertStringNotContainsString((string) $user->google_sub, $body);
+            }
             $this->assertStringNotContainsString('"user_id":'.$user->id, $body);
         }
     }

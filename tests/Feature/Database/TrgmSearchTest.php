@@ -19,7 +19,7 @@ class TrgmSearchTest extends TestCase
 
         Cafe::create(['name' => 'Kopi Anjis Perintis', 'slug' => 'kopi-anjis-perintis', 'city' => 'makassar', 'area' => 'tamalanrea', 'lat' => -5.1476651, 'lng' => 119.4327311]);
 
-        $similarity = DB::table('cafes')->selectRaw("similarity(name, ?) as score", ['kopi anjs'])->value('score');
+        $similarity = DB::table('cafes')->selectRaw('similarity(name, ?) as score', ['kopi anjs'])->value('score');
 
         $this->assertGreaterThan(0.3, (float) $similarity);
     }

@@ -12,3 +12,8 @@ Schedule::command('cafes:assign-hidden-gem')
     ->dailyAt('02:00')
     ->timezone('Asia/Makassar')
     ->withoutOverlapping();
+
+Schedule::command('moderation:send-digest')
+    ->dailyAt('08:00')
+    ->timezone('Asia/Makassar')
+    ->withoutOverlapping();

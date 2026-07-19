@@ -13,11 +13,20 @@ class CachePublicCafePage
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()) return $next($request);
+        if ($request->user()) {
+            return $next($request);
+        }
+
         $key = 'cafe-page:'.sha1($request->path());
-        if ($cached = $this->cache->get($key)) return response($cached['body'], $cached['status'], $cached['headers']);
+        if ($cached = $this->cache->get($key)) {
+            return response($cached['body'], $cached['status'], $cached['headers']);
+        }
+
         $response = $next($request);
-        if ($response->isSuccessful()) $this->cache->put($key, ['body' => $response->getContent(), 'status' => $response->getStatusCode(), 'headers' => ['Cache-Control' => 'public, max-age=300']], now()->addMinutes(5));
+        if ($response->isSuccessful()) {
+            $this->cache->put($key, ['body' => $response->getContent(), 'status' => $response->getStatusCode(), 'headers' => ['Cache-Control' => 'public, max-age=300']], now()->addMinutes(5));
+        }
+
         return $response;
     }
 }

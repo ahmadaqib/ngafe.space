@@ -16,12 +16,12 @@ class HandleGoogleCallback
         $isNewUser = ! $user->exists;
         $user->fill([
             'email' => $googleUser->getEmail(),
-            'role' => 'user',
-            'status' => 'active',
         ]);
 
         if ($isNewUser) {
             $user->display_alias_seed = Str::random(64);
+            $user->role = 'user';
+            $user->status = 'active';
         }
 
         $user->saveOrFail();

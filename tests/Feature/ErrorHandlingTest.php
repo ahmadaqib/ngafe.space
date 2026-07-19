@@ -10,8 +10,8 @@ class ErrorHandlingTest extends TestCase
 {
     public function test_domain_exception_is_a_safe_json_response_with_request_id(): void
     {
-        Route::get('/_test/domain-error', fn () => throw new ReviewLimitExceeded())->name('test.domain-error');
-        $this->getJson('/_test/domain-error')->assertUnprocessable()->assertJson(['message' => 'Kamu sudah pernah mengulas cafe ini.'])->assertHeader('X-Request-Id');
+        Route::get('/_test/domain-error', fn () => throw new ReviewLimitExceeded)->name('test.domain-error');
+        $this->getJson('/_test/domain-error')->assertUnprocessable()->assertJson(['message' => 'Banyak cerita hari ini. Istirahat sebentar, lalu coba lagi ya.'])->assertHeader('X-Request-Id');
     }
 
     public function test_non_domain_exception_has_a_generic_json_message(): void

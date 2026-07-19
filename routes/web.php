@@ -19,8 +19,8 @@ Route::get('/cari', Search::class)->name('search');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::view('/dev/tokens', 'dev.tokens')->middleware('local');
 
-Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->middleware('throttle:login')->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->middleware('throttle:login')->name('auth.google.callback');
 Route::get('/keberatan-konten/{review}', ContentAppealForm::class)->name('content-appeal');
 Route::get('/keberatan-konten/status/{appeal}', ContentAppealStatus::class)->name('content-appeal-status');
 Route::get('/kontribusimu', MyContributions::class)->middleware('auth')->name('my-contributions');

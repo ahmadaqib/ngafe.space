@@ -29,7 +29,7 @@ final class AttachPhotos
         }
 
         $key = "photo:day:{$user->id}";
-        if (RateLimiter::remaining($key, 20) < count($files)) {
+        if (RateLimiter::remaining($key, (int) config('rate_limits.photo.per_day')) < count($files)) {
             throw new PhotoValidationFailed('daily-limit');
         }
 

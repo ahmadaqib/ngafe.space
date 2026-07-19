@@ -67,7 +67,7 @@
         </section>
         <a data-sticky-review-cta class="ngafe-button ngafe-sticky-cta" href="#review-form" hidden>Tulis review</a>
     </article>
-    <script>
+    <script @if($nonce = \Illuminate\Support\Facades\Vite::cspNonce()) nonce="{{ $nonce }}" @endif>
         document.addEventListener('DOMContentLoaded', () => {
             const list = document.querySelector('[data-review-list]');
             const cta = document.querySelector('[data-sticky-review-cta]');

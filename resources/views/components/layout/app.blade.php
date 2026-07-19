@@ -46,7 +46,7 @@
         <a href="{{ auth()->check() ? route('my-contributions') : '#review-form' }}" @if(request()->routeIs('my-contributions')) aria-current="page" @endif>Kamu</a>
     </nav>
     @livewireScripts
-    <script>
+    <script @if($nonce = \Illuminate\Support\Facades\Vite::cspNonce()) nonce="{{ $nonce }}" @endif>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
         }

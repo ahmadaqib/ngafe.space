@@ -19,7 +19,7 @@ final class SubmitReport
     public function handle(User $reporter, Review|Photo $subject, ReportReason $reason, ?string $note = null): Report
     {
         $key = "report:day:{$reporter->id}";
-        if (RateLimiter::tooManyAttempts($key, 10)) {
+        if (RateLimiter::tooManyAttempts($key, (int) config('rate_limits.report.per_day'))) {
             throw new class extends DomainException
             {
                 public function userMessage(): string

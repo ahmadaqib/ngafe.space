@@ -26,7 +26,7 @@ final class SubmitContentAppeal
         }
 
         $rateKey = 'content-appeal:day:'.$this->emailHash($normalizedEmail);
-        if (RateLimiter::tooManyAttempts($rateKey, 3)) {
+        if (RateLimiter::tooManyAttempts($rateKey, (int) config('rate_limits.content_appeal.per_day'))) {
             throw new ContentAppealLimitExceeded;
         }
 
@@ -51,7 +51,7 @@ final class SubmitContentAppeal
     public function appealOnce(ContentAppeal $appeal, string $email, string $reason): ContentAppeal
     {
         $rateKey = "content-appeal:verify:{$appeal->id}";
-        if (RateLimiter::tooManyAttempts($rateKey, 5)) {
+        if (RateLimiter::tooManyAttempts($rateKey, (int) config('rate_limits.content_appeal.verify_per_hour'))) {
             throw new ContentAppealLimitExceeded;
         }
         RateLimiter::hit($rateKey, 3600);

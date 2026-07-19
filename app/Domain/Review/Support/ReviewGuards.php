@@ -105,8 +105,8 @@ final class ReviewGuards
     private function rateLimitKeys(User $user): array
     {
         return [
-            ["review:hour:{$user->id}", 3, 3600],
-            ["review:day:{$user->id}", 10, 86400],
+            ["review:hour:{$user->id}", (int) config('rate_limits.review.per_hour'), 3600],
+            ["review:day:{$user->id}", (int) config('rate_limits.review.per_day'), 86400],
         ];
     }
 }
